@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Icon } from "@/app/components/ui-icon";
 
 const navigation = [
@@ -17,6 +17,20 @@ export function AdminShell({
     const pathname = usePathname();
     const router = useRouter();
     const [menuOpen, setMenuOpen] = useState(false);
+    const [globalSearch, setGlobalSearch] = useState("");
+    const pageTitle = pathname.startsWith("/reports/")
+        ? "Análise do relato"
+        : pathname.startsWith("/reports")
+          ? "Relatos"
+          : pathname.startsWith("/notices")
+            ? "Avisos à comunidade"
+            : "Painel de Controle";
+
+    function searchReports(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        const query = globalSearch.trim();
+        router.push(query ? `/reports?search=${encodeURIComponent(query)}` : "/reports");
+    }
 
     useEffect(() => {
         const handleUnauthorized = () => router.replace("/login");
@@ -33,13 +47,13 @@ export function AdminShell({
                     href="/"
                     onClick={() => setMenuOpen(false)}
                 >
-                    <span className="brand-mark">f</span>
+                    <span className="brand-mark"><Icon name="pin" /></span>
                     <span>
                         <strong>farol</strong>
                         <small>ADMINISTRAÇÃO</small>
                     </span>
                 </Link>
-                <div className="sidebar-label">MENU PRINCIPAL</div>
+                <div className="sidebar-label">NAVEGAÇÃO PRINCIPAL</div>
                 <nav aria-label="Navegação principal" className="side-nav">
                     {navigation.map((item) => {
                         const active =
@@ -63,7 +77,11 @@ export function AdminShell({
                 <div className="sidebar-bottom">
                     <div className="security-note">
                         <span className="security-dot" />
-                        Área restrita a moderadores
+                        <span>
+                            <strong>Status Operacional</strong>
+                            <small>Central ativa · Área restrita oficial</small>
+                        </span>
+                        <Icon name="lock" />
                     </div>
                     <button
                         className="nav-link logout-link"
@@ -97,11 +115,33 @@ export function AdminShell({
                     >
                         <Icon name="menu" />
                     </button>
-                    <span className="topbar-title">Central de moderação</span>
-                    <span className="role-pill">
-                        <span className="security-dot" />
-                        Acesso seguro
-                    </span>
+                    <div aria-label={`Farol ADM, ${pageTitle}`} className="topbar-breadcrumb">
+                        <span className="topbar-brand-mark"><Icon name="pin" /></span>
+                        <span>Farol ADM</span>
+                        <Icon name="chevron" />
+                        <strong>{pageTitle}</strong>
+                    </div>
+                    <form className="topbar-search" onSubmit={searchReports} role="search">
+                        <Icon name="search" />
+                        <input
+                            aria-label="Buscar relatos"
+                            onChange={(event) => setGlobalSearch(event.target.value)}
+                            placeholder="Buscar ocorrência, placa, protocolo"
+                            value={globalSearch}
+                        />
+                    </form>
+                    <div className="topbar-account">
+                        <span className="role-pill">
+                            <Icon name="lock" />
+                            Acesso seguro
+                        </span>
+                        <span className="account-divider" />
+                        <span className="account-copy">
+                            <strong>Administrador</strong>
+                            <small>Painel de moderação</small>
+                        </span>
+                        <span aria-hidden="true" className="account-avatar">A</span>
+                    </div>
                 </header>
                 <main className="main-content">{children}</main>
             </div>

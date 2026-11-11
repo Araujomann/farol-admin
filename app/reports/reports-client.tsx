@@ -28,9 +28,15 @@ const statuses: Array<{ value: "" | ModerationStatus; label: string }> = [
     { value: "REJECTED", label: "Rejeitados" },
 ];
 
-export function ReportsClient({ initialStatus }: { initialStatus: string }) {
+export function ReportsClient({
+    initialSearch,
+    initialStatus,
+}: {
+    initialSearch: string;
+    initialStatus: string;
+}) {
     const [status, setStatus] = useState(initialStatus);
-    const [search, setSearch] = useState("");
+    const [search, setSearch] = useState(initialSearch);
     const [page, setPage] = useState(1);
     const [sort, setSort] = useState<"newest" | "oldest">("newest");
     const [result, setResult] = useState<AccidentListResponse | null>(null);
@@ -85,17 +91,32 @@ export function ReportsClient({ initialStatus }: { initialStatus: string }) {
 
     return (
         <AdminShell>
-            <div className="page-heading">
-                <div>
-                    <div className="eyebrow">MODERAÇÃO</div>
-                    <h1>Relatos</h1>
-                    <p>Consulte, filtre e acompanhe os relatos enviados pela comunidade.</p>
+            <section aria-label="Resumo dos relatos" className="reports-heading-card">
+                <div className="page-heading reports-page-heading">
+                    <div>
+                        <div className="eyebrow"><span className="eyebrow-dot" /> MODERAÇÃO</div>
+                        <h1>Relatos</h1>
+                        <p>
+                            Consulte, filtre e acompanhe os relatos enviados pela comunidade
+                            em tempo real.
+                        </p>
+                    </div>
+                    <div className="reports-overview">
+                        <div className="reports-overview-icon"><Icon name="reports" /></div>
+                        <strong>{result?.pagination.total ?? "—"}</strong>
+                        <span>relatos</span>
+                        <small>Total na lista</small>
+                    </div>
+                    <div className="reports-overview reports-overview-critical">
+                        <div className="reports-overview-icon"><Icon name="alert" /></div>
+                        <strong>
+                            {result?.data.filter((item) => item.severity === "critical").length ?? "—"}
+                        </strong>
+                        <span>críticos</span>
+                        <small>Atenção imediata nesta página</small>
+                    </div>
                 </div>
-                <div className="heading-count">
-                    <strong>{result?.pagination.total ?? "—"}</strong>
-                    <span>relatos</span>
-                </div>
-            </div>
+            </section>
 
             <section aria-label="Filtros de relatos" className="filter-bar">
                 <label className="search-field">
@@ -107,7 +128,7 @@ export function ReportsClient({ initialStatus }: { initialStatus: string }) {
                             setPage(1);
                             setSearch(event.target.value);
                         }}
-                        placeholder="Buscar por tipo ou descrição"
+                        placeholder="Buscar por tipo ou descrição..."
                         value={search}
                     />
                 </label>
@@ -134,6 +155,18 @@ export function ReportsClient({ initialStatus }: { initialStatus: string }) {
                         <option value="oldest">Mais antigos</option>
                     </select>
                 </label>
+                <button
+                    aria-label="Atualizar lista de relatos"
+                    className="filter-refresh"
+                    disabled={loading}
+                    onClick={() => {
+                        setLoading(true);
+                        setReloadKey((value) => value + 1);
+                    }}
+                    type="button"
+                >
+                    <Icon name="refresh" />
+                </button>
             </section>
 
             {error && (
@@ -179,9 +212,14 @@ export function ReportsClient({ initialStatus }: { initialStatus: string }) {
                                 result?.data.map((accident) => (
                                     <tr key={accident.id}>
                                         <td>
-                                            <Link className="report-title" href={`/reports/${accident.id}`}>
-                                                {accident.tipo_acidente}
-                                            </Link>
+                                            <div className="report-title-line">
+                                                <span className={`report-row-icon icon-${accident.severity}`}>
+                                                    <Icon name={accident.severity === "critical" ? "alert" : "pin"} />
+                                                </span>
+                                                <Link className="report-title" href={`/reports/${accident.id}`}>
+                                                    {accident.tipo_acidente}
+                                                </Link>
+                                            </div>
                                             <span className="report-subtitle">
                                                 {accident.description || "Sem descrição adicional"}
                                             </span>

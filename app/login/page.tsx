@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
+import { Icon } from "@/app/components/ui-icon";
 
 function LoginForm() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [passwordVisible, setPasswordVisible] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -49,57 +51,135 @@ function LoginForm() {
 
     return (
         <main className="login-page">
-            <section aria-labelledby="login-title" className="login-card">
-                <Link className="brand login-brand" href="/">
-                    <span className="brand-mark">f</span>
-                    <span>
-                        <strong>farol</strong>
-                        <small>ADMINISTRAÇÃO</small>
+            <section aria-label="Identidade do Farol" className="login-brand-panel">
+                <div className="login-brand-art" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                </div>
+                <div className="login-brand-content">
+                    <Link className="brand login-brand" href="/">
+                        <span className="brand-mark"><Icon name="pin" /></span>
+                        <span>
+                            <strong>farol</strong>
+                            <small>ADMINISTRAÇÃO</small>
+                        </span>
+                    </Link>
+                    <span className="login-brand-tag">
+                        <span className="security-dot" />
+                        Central de Gestão e Moderação
                     </span>
-                </Link>
-                <div className="login-eyebrow">ÁREA RESTRITA</div>
-                <h1 id="login-title">Acesse sua conta</h1>
-                <p className="login-description">
-                    Entre com uma conta de moderador ou administrador do Farol.
-                </p>
-                <form className="login-form" onSubmit={submit}>
-                    <label className="form-label" htmlFor="email">
-                        E-mail
-                    </label>
-                    <input
-                        autoComplete="username"
-                        className="text-input"
-                        id="email"
-                        onChange={(event) => setEmail(event.target.value)}
-                        placeholder="nome@exemplo.com"
-                        required
-                        type="email"
-                        value={email}
-                    />
-                    <label className="form-label" htmlFor="password">
-                        Senha
-                    </label>
-                    <input
-                        autoComplete="current-password"
-                        className="text-input"
-                        id="password"
-                        onChange={(event) => setPassword(event.target.value)}
-                        required
-                        type="password"
-                        value={password}
-                    />
-                    {error && (
-                        <div className="alert alert-error" role="alert">
-                            {error}
-                        </div>
-                    )}
-                    <button className="button button-primary login-submit" disabled={loading}>
-                        {loading ? "Entrando..." : "Entrar no painel"}
-                    </button>
-                </form>
-                <p className="login-footnote">
-                    O acesso requer papel administrativo e e-mail verificado na API.
-                </p>
+                    <h2>Trânsito urbano seguro e em tempo real.</h2>
+                    <p>
+                        Plataforma dedicada à gestão de relatos e à análise das
+                        informações enviadas pela comunidade.
+                    </p>
+                    <div className="login-feature-list">
+                        <article className="login-feature">
+                            <span className="login-feature-icon"><Icon name="lock" /></span>
+                            <span>
+                                <strong>Gestão responsável</strong>
+                                <small>Acesso destinado à equipe autorizada</small>
+                            </span>
+                            <Icon className="login-feature-check" name="check" />
+                        </article>
+                        <article className="login-feature">
+                            <span className="login-feature-icon"><Icon name="reports" /></span>
+                            <span>
+                                <strong>Relatos da comunidade</strong>
+                                <small>Informações organizadas para análise</small>
+                            </span>
+                            <Icon className="login-feature-check" name="check" />
+                        </article>
+                        <article className="login-feature">
+                            <span className="login-feature-icon"><Icon name="users" /></span>
+                            <span>
+                                <strong>Moderação centralizada</strong>
+                                <small>Apoio à equipe do Farol</small>
+                            </span>
+                            <Icon className="login-feature-check" name="check" />
+                        </article>
+                    </div>
+                </div>
+                <div className="login-brand-footer">
+                    <span><span className="security-dot" /> Farol · Administração</span>
+                    <span>Portal institucional</span>
+                </div>
+            </section>
+
+            <section aria-labelledby="login-title" className="login-form-panel">
+                <div className="login-form-header">
+                    <div className="login-eyebrow">PAINEL ADMINISTRATIVO</div>
+                    <span className="login-access-label"><Icon name="lock" /> Área restrita</span>
+                </div>
+                <div className="login-form-content">
+                    <h1 id="login-title">Acessar painel</h1>
+                    <p className="login-description">
+                        Entre com suas credenciais institucionais para gerenciar
+                        os relatos da comunidade.
+                    </p>
+                    <form className="login-form" onSubmit={submit}>
+                        <label className="form-label" htmlFor="email">
+                            E-mail institucional
+                        </label>
+                        <span className="login-input-wrap">
+                            <Icon name="mail" />
+                            <input
+                                autoComplete="username"
+                                id="email"
+                                onChange={(event) => setEmail(event.target.value)}
+                                placeholder="nome@exemplo.com"
+                                required
+                                type="email"
+                                value={email}
+                            />
+                        </span>
+                        <label className="form-label" htmlFor="password">
+                            Senha
+                        </label>
+                        <span className="login-input-wrap">
+                            <Icon name="lock" />
+                            <input
+                                autoComplete="current-password"
+                                id="password"
+                                onChange={(event) => setPassword(event.target.value)}
+                                required
+                                type={passwordVisible ? "text" : "password"}
+                                value={password}
+                            />
+                            <button
+                                aria-label={passwordVisible ? "Ocultar senha" : "Mostrar senha"}
+                                className="password-visibility"
+                                onClick={() => setPasswordVisible((visible) => !visible)}
+                                type="button"
+                            >
+                                <Icon name={passwordVisible ? "eyeOff" : "eye"} />
+                            </button>
+                        </span>
+                        {error && (
+                            <div className="alert alert-error" role="alert">
+                                {error}
+                            </div>
+                        )}
+                        <button className="button button-primary login-submit" disabled={loading}>
+                            {loading ? "Entrando..." : "Entrar no painel"}
+                            {!loading && <Icon name="arrow" />}
+                        </button>
+                    </form>
+                    <div className="login-audit-note">
+                        <span className="login-audit-icon"><Icon name="reports" /></span>
+                        <span>
+                            <strong>Acesso de equipe</strong>
+                            <small>
+                                Entre com uma conta de moderador ou administrador do Farol.
+                            </small>
+                        </span>
+                    </div>
+                </div>
+                <div className="login-form-footer">
+                    <span>Farol Trânsito</span>
+                    <span>Suporte: equipe administrativa</span>
+                </div>
             </section>
         </main>
     );

@@ -104,12 +104,15 @@ export function NoticesClient() {
         <AdminShell>
             <div className="page-heading">
                 <div>
-                    <div className="eyebrow">COMUNICAÇÃO COM A COMUNIDADE</div>
+                    <div className="eyebrow"><span className="eyebrow-dot" /> CANAL OFICIAL DE TRANSMISSÃO</div>
                     <h1>Avisos à comunidade</h1>
                     <p>
                         Compartilhe atualizações importantes com quem usa o Farol.
                     </p>
                 </div>
+                <span className="notice-reach">
+                    <span className="security-dot" /> Alcance estimado: comunidade Farol
+                </span>
             </div>
 
             {error && (
@@ -158,16 +161,19 @@ export function NoticesClient() {
                     </div>
 
                     <div className="notice-guidance">
+                    <span className="notice-guidance-icon"><Icon name="pin" /></span>
+                    <div>
                         <strong>Uma boa mensagem ajuda todo mundo</strong>
-                        <span>
-                            Conte o que mudou, quando a atualização acontece e se a
-                            comunidade precisa fazer algo.
-                        </span>
+                    <span>
+                        Conte o que mudou, quando a atualização acontece e se a
+                        comunidade precisa fazer algo.
+                    </span>
+                    </div>
                     </div>
 
                     <form className="notice-form" onSubmit={publishNotice}>
                         <label className="form-label" htmlFor="community-notice">
-                            Mensagem do aviso
+                            Mensagem do aviso <span className="required-mark">*</span>
                         </label>
                         <textarea
                             aria-describedby="notice-character-count notice-field-hint"
@@ -191,14 +197,28 @@ export function NoticesClient() {
                                 {message.length}/{MAX_MESSAGE_LENGTH}
                             </span>
                         </div>
-                        <button
-                            className="button button-primary notice-submit"
-                            disabled={!message.trim() || isPublishing}
-                            type="submit"
-                        >
-                            <Icon name="bell" />
-                            {isPublishing ? "Publicando aviso..." : "Publicar aviso"}
-                        </button>
+                        <div className="notice-form-actions">
+                            <button
+                                className="button button-quiet"
+                                disabled={!message || isPublishing}
+                                onClick={() => {
+                                    setMessage("");
+                                    setStatus("");
+                                    setError("");
+                                }}
+                                type="button"
+                            >
+                                Limpar
+                            </button>
+                            <button
+                                className="button button-primary notice-submit"
+                                disabled={!message.trim() || isPublishing}
+                                type="submit"
+                            >
+                                <Icon name="bell" />
+                                {isPublishing ? "Publicando aviso..." : "Publicar aviso"}
+                            </button>
+                        </div>
                     </form>
                 </section>
 
@@ -210,6 +230,11 @@ export function NoticesClient() {
                         usuárias do Farol. Revise o texto para garantir que a
                         informação esteja correta e fácil de entender.
                     </p>
+                    <ul className="notice-checklist">
+                        <li><Icon name="check" /> Linguagem acessível e neutra</li>
+                        <li><Icon name="check" /> Sem abreviações ambíguas</li>
+                        <li><Icon name="check" /> Notificação push moderada</li>
+                    </ul>
                     <div className="notice-side-foot">
                         <span className="security-dot" />
                         Publicação feita por equipe autorizada

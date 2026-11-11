@@ -158,18 +158,26 @@ export default function ReportDetailPage() {
     if (!accident) return null;
 
     const mapUrl = `https://www.openstreetmap.org/?mlat=${accident.latitude}&mlon=${accident.longitude}#map=16/${accident.latitude}/${accident.longitude}`;
+    const mapBounds = [
+        accident.longitude - 0.008,
+        accident.latitude - 0.005,
+        accident.longitude + 0.008,
+        accident.latitude + 0.005,
+    ].join(",");
+    const mapEmbedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${mapBounds}&layer=mapnik&marker=${accident.latitude}%2C${accident.longitude}`;
 
     return (
         <AdminShell>
-            <Link className="back-link" href="/reports">← Voltar aos relatos</Link>
-            <div className="detail-heading">
-                <div>
-                    <div className="eyebrow">ANÁLISE DE RELATO</div>
-                    <h1>{accident.tipo_acidente}</h1>
-                    <span className="detail-id">ID {accident.id}</span>
-                </div>
+            <div className="detail-toolbar">
+                <Link className="back-link" href="/reports">
+                    <Icon name="arrow" /> Voltar aos relatos
+                </Link>
+                <span className="detail-protocol">
+                    / Protocolo #{accident.id.slice(0, 8).toUpperCase()}
+                </span>
                 <StatusBadge status={accident.moderation_status} />
             </div>
+            <h1 className="sr-only">Análise do relato: {accident.tipo_acidente}</h1>
 
             {error && <div className="alert alert-error" role="alert">{error}</div>}
             {notice && <div className="alert alert-success" role="status">{notice}</div>}
@@ -179,7 +187,9 @@ export default function ReportDetailPage() {
                     <section className="content-card">
                         <div className="section-heading">
                             <div>
-                                <div className="eyebrow">INFORMAÇÕES DO RELATO</div>
+                                <div className="eyebrow detail-eyebrow">
+                                    <Icon name="reports" /> INFORMAÇÕES DO RELATO
+                                </div>
                                 <h2>Texto e dados da ocorrência</h2>
                             </div>
                             <span className={`severity severity-${accident.severity}`}>
@@ -196,19 +206,28 @@ export default function ReportDetailPage() {
                                 }}
                             >
                                 <label className="report-edit-field">
-                                    <span className="form-label">Título do relato</span>
-                                    <input
-                                        className="text-input"
-                                        disabled={saving}
-                                        maxLength={180}
-                                        minLength={3}
-                                        onChange={(event) => setEditTitle(event.target.value)}
-                                        required
-                                        value={editTitle}
-                                    />
+                                    <span className="report-field-heading">
+                                        <span className="form-label">Título do relato</span>
+                                        <span>Identificador principal</span>
+                                    </span>
+                                    <span className="report-title-input-wrap">
+                                        <input
+                                            className="text-input"
+                                            disabled={saving}
+                                            maxLength={180}
+                                            minLength={3}
+                                            onChange={(event) => setEditTitle(event.target.value)}
+                                            required
+                                            value={editTitle}
+                                        />
+                                        <Icon name="edit" />
+                                    </span>
                                 </label>
                                 <label className="report-edit-field">
-                                    <span className="form-label">Descrição</span>
+                                    <span className="report-field-heading">
+                                        <span className="form-label">Descrição</span>
+                                        <span>Enviada pelo relator</span>
+                                    </span>
                                     <textarea
                                         className="text-area"
                                         disabled={saving}
@@ -241,35 +260,42 @@ export default function ReportDetailPage() {
                         )}
                         <div className="detail-facts">
                             <div className="fact">
-                                <span>Data e hora da ocorrência</span>
+                                <span><Icon name="calendar" /> Data e hora da ocorrência</span>
                                 <strong>{formatDate(accident.occurred_at)}</strong>
                             </div>
                             <div className="fact">
-                                <span>Data de envio</span>
+                                <span><Icon name="upload" /> Data de envio</span>
                                 <strong>{formatDate(accident.created_at)}</strong>
                             </div>
                             <div className="fact">
-                                <span>Classificação</span>
+                                <span><Icon name="alert" /> Classificação</span>
                                 <strong>{formatClassification(accident.classificacao_acidente)}</strong>
                             </div>
                             <div className="fact">
-                                <span>Condição climática</span>
+                                <span><Icon name="cloud" /> Condição climática</span>
                                 <strong>{formatWeather(accident.condicao_meteorologica)}</strong>
                             </div>
-                            <div className="fact">
-                                <span>Coordenadas geográficas</span>
-                                <strong>{accident.latitude.toFixed(6)}, {accident.longitude.toFixed(6)}</strong>
-                            </div>
-                            <a className="fact-map-link" href={mapUrl} rel="noreferrer" target="_blank">
-                                <Icon name="pin" /> Ver localização no mapa <Icon name="arrow" />
-                            </a>
                         </div>
+                        <a className="fact-map-link" href={mapUrl} rel="noreferrer" target="_blank">
+                            <span><Icon name="pin" /> Coordenadas geográficas</span>
+                            <strong>{accident.latitude.toFixed(6)}, {accident.longitude.toFixed(6)}</strong>
+                            <span className="map-link-label">Ver localização no mapa <Icon name="arrow" /></span>
+                        </a>
+                        <iframe
+                            className="report-map"
+                            loading="lazy"
+                            referrerPolicy="strict-origin-when-cross-origin"
+                            src={mapEmbedUrl}
+                            title={`Mapa da ocorrência ${accident.tipo_acidente}`}
+                        />
                     </section>
 
                     <section className="content-card">
                         <div className="section-heading">
                             <div>
-                                <div className="eyebrow">MÍDIA</div>
+                                <div className="eyebrow detail-eyebrow">
+                                    <Icon name="imageOff" /> MÍDIA
+                                </div>
                                 <h2>Imagens anexadas</h2>
                             </div>
                             <span className="subtle-count">{accident.images.length}</span>
@@ -291,17 +317,26 @@ export default function ReportDetailPage() {
                                 ))}
                             </div>
                         ) : (
-                            <p className="muted-copy">Nenhuma imagem foi anexada a este relato.</p>
+                            <div className="report-media-empty">
+                                <span><Icon name="imageOff" /></span>
+                                <strong>Nenhuma imagem foi anexada a este relato.</strong>
+                                <p>
+                                    O cidadão não fez upload de fotos ou registros visuais
+                                    da ocorrência durante o envio inicial.
+                                </p>
+                            </div>
                         )}
                     </section>
 
                     <section className="content-card">
                         <div className="section-heading">
                             <div>
-                                <div className="eyebrow">RASTREABILIDADE</div>
-                                <h2>Histórico de decisões</h2>
+                                <div className="eyebrow detail-eyebrow">
+                                    <Icon name="refresh" /> RASTREABILIDADE
+                                </div>
+                                <h2>Histórico de auditoria e logs</h2>
                             </div>
-                            <span className="subtle-count">{accident.moderation_history.length}</span>
+                            <span className="audit-caption">Ações registradas pelo sistema</span>
                         </div>
                         {accident.moderation_history.length ? (
                             <ol className="history-list">
@@ -324,23 +359,43 @@ export default function ReportDetailPage() {
                                 ))}
                             </ol>
                         ) : (
-                            <p className="muted-copy">Ainda não há decisões registradas.</p>
+                            <div className="audit-empty">
+                                <span className="audit-empty-icon"><Icon name="reports" /></span>
+                                <div>
+                                    <strong>Ocorrência submetida</strong>
+                                    <p>
+                                        Relato recebido em {formatDate(accident.created_at)}.
+                                        Aguardando análise da equipe de moderação.
+                                    </p>
+                                </div>
+                            </div>
                         )}
                     </section>
                 </div>
 
                 <aside className="detail-aside">
                     <section className="content-card submitter-card">
-                        <div className="eyebrow">AUTOR DO RELATO</div>
+                        <div className="eyebrow detail-eyebrow">
+                            <Icon name="users" /> AUTOR DO RELATO
+                        </div>
                         <div className="submitter-avatar">
                             {accident.created_by?.name?.slice(0, 1).toUpperCase() ?? "?"}
                         </div>
-                        <strong>{accident.created_by?.name ?? "Usuário indisponível"}</strong>
+                        <strong>
+                            {accident.created_by?.name ?? "Usuário indisponível"}
+                            <span className="verified-mark">✓</span>
+                        </strong>
                         <span>{accident.created_by?.email ?? "Sem e-mail cadastrado"}</span>
+                        <small className="submitter-history">Relato enviado pela comunidade</small>
                     </section>
 
                     <section className="content-card decision-card">
-                        <div className="eyebrow">DECISÃO DE MODERAÇÃO</div>
+                        <div className="decision-heading">
+                            <div className="eyebrow detail-eyebrow">
+                                <Icon name="alert" /> DECISÃO DE MODERAÇÃO
+                            </div>
+                            <span className="official-pill">OFICIAL</span>
+                        </div>
                         <h2>Registrar análise</h2>
                         <label className="form-label" htmlFor="public-message">
                             Justificativa ou mensagem ao usuário
