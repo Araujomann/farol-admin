@@ -53,6 +53,16 @@ Confirme que exatamente uma conta foi atualizada; não altere `is_email_verified
 
 A ação `REJECTED` exige `publicMessage`. `internalNote` é armazenada separadamente e só é devolvida às rotas administrativas. As decisões são imutáveis pela interface e ficam registradas no histórico.
 
+## Avisos à comunidade
+
+Moderadores e administradores com e-mail verificado podem publicar comunicados
+pela opção **Avisos à comunidade** na barra lateral. Cada mensagem aparece no
+sininho do perfil no aplicativo Farol; o painel também mantém uma lista dos
+avisos mais recentes.
+
+- `GET /notifications/administrative-notices` — lista os 50 avisos mais recentes para usuários autenticados.
+- `POST /notifications/administrative-notices` — publica `{ "message": "..." }`; exige papel `moderator` ou `admin`, e-mail verificado e uma mensagem de até 1.000 caracteres.
+
 ## Limitações conhecidas
 
 - A API registra uma mensagem destinada ao usuário, mas o aplicativo Farol V3 ainda não busca nem exibe esse retorno. A exibição ao usuário exige uma evolução específica no endpoint e na interface mobile.

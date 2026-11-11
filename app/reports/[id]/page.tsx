@@ -25,6 +25,8 @@ export default function ReportDetailPage() {
     const [notice, setNotice] = useState("");
     const [publicMessage, setPublicMessage] = useState("");
     const [internalNote, setInternalNote] = useState("");
+    const [editTitle, setEditTitle] = useState("");
+    const [editDescription, setEditDescription] = useState("");
 
     const loadAccident = useCallback(async () => {
         try {
@@ -34,6 +36,8 @@ export default function ReportDetailPage() {
             setAccident(result.data);
             setPublicMessage(result.data.moderation_message ?? "");
             setInternalNote(result.data.moderation_internal_note ?? "");
+            setEditTitle(result.data.tipo_acidente);
+            setEditDescription(result.data.description ?? "");
         } catch (reason) {
             setError(
                 reason instanceof Error ? reason.message : "Erro ao carregar o relato.",
@@ -48,8 +52,53 @@ export default function ReportDetailPage() {
         return () => window.clearTimeout(timer);
     }, [loadAccident]);
 
+    const hasUnsavedChanges =
+        accident !== null &&
+        (editTitle !== accident.tipo_acidente ||
+            editDescription !== (accident.description ?? ""));
+
+    async function saveEdits() {
+        if (!accident || accident.moderation_status !== "PENDING") return;
+        if (editTitle.trim().length < 3) {
+            setError("O título do relato deve ter pelo menos 3 caracteres.");
+            return;
+        }
+
+        setSaving(true);
+        setError("");
+        setNotice("");
+        try {
+            const result = await adminFetch<ApiEnvelope<AccidentDetail>>(
+                `/api/admin/moderation/${accident.id}`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        tipo_acidente: editTitle,
+                        description: editDescription,
+                    }),
+                },
+            );
+            setAccident(result.data);
+            setEditTitle(result.data.tipo_acidente);
+            setEditDescription(result.data.description ?? "");
+            setNotice("Texto do relato atualizado.");
+        } catch (reason) {
+            setError(
+                reason instanceof Error
+                    ? reason.message
+                    : "Não foi possível salvar as alterações.",
+            );
+        } finally {
+            setSaving(false);
+        }
+    }
+
     async function decide(status: Exclude<ModerationStatus, "PENDING">) {
         if (!accident) return;
+        if (hasUnsavedChanges) {
+            setError("Salve as alterações do relato antes de registrar a decisão.");
+            return;
+        }
         if (status === "REJECTED" && !publicMessage.trim()) {
             setError("Informe uma justificativa que poderá ser enviada ao usuário.");
             return;
@@ -131,16 +180,65 @@ export default function ReportDetailPage() {
                         <div className="section-heading">
                             <div>
                                 <div className="eyebrow">INFORMAÇÕES DO RELATO</div>
-                                <h2>Dados da ocorrência</h2>
+                                <h2>Texto e dados da ocorrência</h2>
                             </div>
                             <span className={`severity severity-${accident.severity}`}>
                                 <span className="severity-dot" />
                                 {formatSeverity(accident.severity)}
                             </span>
                         </div>
-                        <p className="description-text">
-                            {accident.description || "O usuário não adicionou uma descrição."}
-                        </p>
+                        {accident.moderation_status === "PENDING" ? (
+                            <form
+                                className="report-edit-form"
+                                onSubmit={(event) => {
+                                    event.preventDefault();
+                                    void saveEdits();
+                                }}
+                            >
+                                <label className="report-edit-field">
+                                    <span className="form-label">Título do relato</span>
+                                    <input
+                                        className="text-input"
+                                        disabled={saving}
+                                        maxLength={180}
+                                        minLength={3}
+                                        onChange={(event) => setEditTitle(event.target.value)}
+                                        required
+                                        value={editTitle}
+                                    />
+                                </label>
+                                <label className="report-edit-field">
+                                    <span className="form-label">Descrição</span>
+                                    <textarea
+                                        className="text-area"
+                                        disabled={saving}
+                                        maxLength={4000}
+                                        onChange={(event) =>
+                                            setEditDescription(event.target.value)
+                                        }
+                                        placeholder="O usuário não adicionou uma descrição."
+                                        value={editDescription}
+                                    />
+                                </label>
+                                <div className="report-edit-actions">
+                                    <button
+                                        className="button button-primary button-small"
+                                        disabled={saving || !hasUnsavedChanges}
+                                        type="submit"
+                                    >
+                                        {saving ? "Salvando..." : "Salvar alterações"}
+                                    </button>
+                                    {hasUnsavedChanges && (
+                                        <span>Salve as alterações antes de decidir.</span>
+                                    )}
+                                </div>
+                            </form>
+                        ) : (
+                            <p className="description-text">
+                                {accident.description ||
+                                    "O usuário não adicionou uma descrição."}
+                            </p>
+                        )}
                         <div className="detail-facts">
                             <div className="fact">
                                 <span>Data e hora da ocorrência</span>
@@ -273,7 +371,7 @@ export default function ReportDetailPage() {
                             <div className="decision-actions">
                                 <button
                                     className="button button-primary"
-                                    disabled={saving}
+                                    disabled={saving || hasUnsavedChanges}
                                     onClick={() => void decide("APPROVED")}
                                     type="button"
                                 >
@@ -281,7 +379,7 @@ export default function ReportDetailPage() {
                                 </button>
                                 <button
                                     className="button button-danger"
-                                    disabled={saving}
+                                    disabled={saving || hasUnsavedChanges}
                                     onClick={() => void decide("REJECTED")}
                                     type="button"
                                 >

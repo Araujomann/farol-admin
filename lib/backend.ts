@@ -92,7 +92,7 @@ function apiUnavailable() {
 
 export async function proxyAdminRequest(
     path: string,
-    method: "GET" | "PATCH",
+    method: "GET" | "POST" | "PATCH",
     body?: string,
 ) {
     const store = await cookies();

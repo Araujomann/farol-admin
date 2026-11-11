@@ -8,6 +8,7 @@ import { Icon } from "@/app/components/ui-icon";
 const navigation = [
     { href: "/", label: "Visão geral", icon: "dashboard" as const },
     { href: "/reports", label: "Relatos", icon: "reports" as const },
+    { href: "/notices", label: "Avisos à comunidade", icon: "bell" as const },
 ];
 
 export function AdminShell({
