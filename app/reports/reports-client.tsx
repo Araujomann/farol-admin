@@ -14,6 +14,7 @@ import type {
     AccidentListItem,
     ModerationStatus,
     Pagination,
+    Severity,
 } from "@/lib/types";
 
 interface AccidentListResponse {
@@ -28,14 +29,25 @@ const statuses: Array<{ value: "" | ModerationStatus; label: string }> = [
     { value: "REJECTED", label: "Rejeitados" },
 ];
 
+const severities: Array<{ value: "" | Severity; label: string }> = [
+    { value: "", label: "Todas as gravidades" },
+    { value: "low", label: "Baixa" },
+    { value: "medium", label: "Média" },
+    { value: "high", label: "Alta" },
+    { value: "critical", label: "Crítica" },
+];
+
 export function ReportsClient({
     initialSearch,
+    initialSeverity,
     initialStatus,
 }: {
     initialSearch: string;
+    initialSeverity: string;
     initialStatus: string;
 }) {
     const [status, setStatus] = useState(initialStatus);
+    const [severity, setSeverity] = useState(initialSeverity);
     const [search, setSearch] = useState(initialSearch);
     const [page, setPage] = useState(1);
     const [sort, setSort] = useState<"newest" | "oldest">("newest");
@@ -53,6 +65,7 @@ export function ReportsClient({
             sort,
         });
         if (status) query.set("status", status);
+        if (severity) query.set("severity", severity);
         if (search.trim()) query.set("search", search.trim());
 
         const timer = window.setTimeout(async () => {
@@ -81,12 +94,18 @@ export function ReportsClient({
             active = false;
             window.clearTimeout(timer);
         };
-    }, [page, reloadKey, search, sort, status]);
+    }, [page, reloadKey, search, severity, sort, status]);
 
     function updateStatus(value: string) {
         setLoading(true);
         setPage(1);
         setStatus(value);
+    }
+
+    function updateSeverity(value: string) {
+        setLoading(true);
+        setPage(1);
+        setSeverity(value);
     }
 
     return (
@@ -136,6 +155,19 @@ export function ReportsClient({
                     <span className="sr-only">Filtrar por status</span>
                     <select onChange={(event) => updateStatus(event.target.value)} value={status}>
                         {statuses.map((item) => (
+                            <option key={item.value} value={item.value}>
+                                {item.label}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+                <label className="select-field">
+                    <span className="sr-only">Filtrar por gravidade</span>
+                    <select
+                        onChange={(event) => updateSeverity(event.target.value)}
+                        value={severity}
+                    >
+                        {severities.map((item) => (
                             <option key={item.value} value={item.value}>
                                 {item.label}
                             </option>

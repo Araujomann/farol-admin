@@ -3563,7 +3563,7 @@ body {
 
     .filter-bar {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 34px;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) 34px;
     }
 
     .search-field {
@@ -3571,7 +3571,7 @@ body {
     }
 
     .filter-refresh {
-        grid-column: 3;
+        grid-column: 4;
     }
 
     .select-field {
