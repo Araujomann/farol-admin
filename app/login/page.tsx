@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { Icon } from "@/app/components/ui-icon";
+import { setAdminEmail } from "@/lib/admin-session";
 
 function LoginForm() {
     const searchParams = useSearchParams();
@@ -31,6 +32,11 @@ function LoginForm() {
                     result?.error?.message ?? "Não foi possível entrar.",
                 );
             }
+            const adminEmail = result?.data?.user?.email;
+            if (typeof adminEmail !== "string") {
+                throw new Error("Não foi possível identificar o e-mail da conta.");
+            }
+            setAdminEmail(adminEmail);
 
             const next = searchParams.get("next");
             const destination =
@@ -61,14 +67,12 @@ function LoginForm() {
                     <Link className="brand login-brand" href="/">
                         <span className="brand-mark"><Icon name="pin" /></span>
                         <span>
-                            <strong>farol</strong>
+                            <strong>Farol</strong>
                             <small>ADMINISTRAÇÃO</small>
                         </span>
                     </Link>
-                    <span className="login-brand-tag">
-                        <span className="security-dot" />
-                        Central de Gestão e Moderação
-                    </span>
+                    
+                       
                     <h2>Trânsito urbano seguro e em tempo real.</h2>
                     <p>
                         Plataforma dedicada à gestão de relatos e à análise das
@@ -102,7 +106,6 @@ function LoginForm() {
                     </div>
                 </div>
                 <div className="login-brand-footer">
-                    <span><span className="security-dot" /> Farol · Administração</span>
                     <span>Portal institucional</span>
                 </div>
             </section>
@@ -177,8 +180,8 @@ function LoginForm() {
                     </div>
                 </div>
                 <div className="login-form-footer">
-                    <span>Farol Trânsito</span>
-                    <span>Suporte: equipe administrativa</span>
+                   
+                    
                 </div>
             </section>
         </main>

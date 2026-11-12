@@ -1,9 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState, useSyncExternalStore } from "react";
 import { Icon } from "@/app/components/ui-icon";
+import {
+    clearAdminEmail,
+    getAdminEmail,
+    subscribeToAdminEmail,
+} from "@/lib/admin-session";
 
 const navigation = [
     { href: "/", label: "Visão geral", icon: "dashboard" as const },
@@ -18,6 +24,11 @@ export function AdminShell({
     const router = useRouter();
     const [menuOpen, setMenuOpen] = useState(false);
     const [globalSearch, setGlobalSearch] = useState("");
+    const adminEmail = useSyncExternalStore(
+        subscribeToAdminEmail,
+        getAdminEmail,
+        () => "",
+    );
     const pageTitle = pathname.startsWith("/reports/")
         ? "Análise do relato"
         : pathname.startsWith("/reports")
@@ -33,7 +44,10 @@ export function AdminShell({
     }
 
     useEffect(() => {
-        const handleUnauthorized = () => router.replace("/login");
+        const handleUnauthorized = () => {
+            clearAdminEmail();
+            router.replace("/login");
+        };
         window.addEventListener("farol:unauthorized", handleUnauthorized);
         return () =>
             window.removeEventListener("farol:unauthorized", handleUnauthorized);
@@ -47,9 +61,15 @@ export function AdminShell({
                     href="/"
                     onClick={() => setMenuOpen(false)}
                 >
-                    <span className="brand-mark"><Icon name="pin" /></span>
+                    <Image
+                        alt=""
+                        className="brand-logo"
+                        height={52}
+                        src="/farol-logo.png"
+                        width={52}
+                    />
                     <span>
-                        <strong>farol</strong>
+                        <strong>Farol</strong>
                         <small>ADMINISTRAÇÃO</small>
                     </span>
                 </Link>
@@ -79,7 +99,7 @@ export function AdminShell({
                         <span className="security-dot" />
                         <span>
                             <strong>Status Operacional</strong>
-                            <small>Central ativa · Área restrita oficial</small>
+                            <small>Central ativa</small>
                         </span>
                         <Icon name="lock" />
                     </div>
@@ -89,6 +109,7 @@ export function AdminShell({
                             const response = await fetch("/api/auth/logout", {
                                 method: "POST",
                             });
+                            clearAdminEmail();
                             if (!response.ok) {
                                 const result = await response.json().catch(() => null);
                                 window.alert(
@@ -138,7 +159,7 @@ export function AdminShell({
                         <span className="account-divider" />
                         <span className="account-copy">
                             <strong>Administrador</strong>
-                            <small>Painel de moderação</small>
+                            {adminEmail && <small title={adminEmail}>{adminEmail}</small>}
                         </span>
                         <span aria-hidden="true" className="account-avatar">A</span>
                     </div>

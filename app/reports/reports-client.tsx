@@ -113,7 +113,7 @@ export function ReportsClient({
                             {result?.data.filter((item) => item.severity === "critical").length ?? "—"}
                         </strong>
                         <span>críticos</span>
-                        <small>Atenção imediata nesta página</small>
+                        <small>merecem atenção imediata nesta página!</small>
                     </div>
                 </div>
             </section>

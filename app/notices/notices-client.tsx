@@ -111,7 +111,7 @@ export function NoticesClient() {
                     </p>
                 </div>
                 <span className="notice-reach">
-                    <span className="security-dot" /> Alcance estimado: comunidade Farol
+                    <span className="security-dot" /> Alcance: comunidade Farol
                 </span>
             </div>
 
@@ -161,14 +161,14 @@ export function NoticesClient() {
                     </div>
 
                     <div className="notice-guidance">
-                    <span className="notice-guidance-icon"><Icon name="pin" /></span>
-                    <div>
-                        <strong>Uma boa mensagem ajuda todo mundo</strong>
-                    <span>
-                        Conte o que mudou, quando a atualização acontece e se a
-                        comunidade precisa fazer algo.
-                    </span>
-                    </div>
+                        <span className="notice-guidance-icon"><Icon name="thumbsUp" /></span>
+                        <div>
+                            <strong>Uma boa mensagem ajuda todo mundo</strong>
+                            <span>
+                                Conte o que mudou, quando a atualização acontece ou se a
+                                comunidade precisa fazer algo.
+                            </span>
+                        </div>
                     </div>
 
                     <form className="notice-form" onSubmit={publishNotice}>
@@ -235,10 +235,7 @@ export function NoticesClient() {
                         <li><Icon name="check" /> Sem abreviações ambíguas</li>
                         <li><Icon name="check" /> Notificação push moderada</li>
                     </ul>
-                    <div className="notice-side-foot">
-                        <span className="security-dot" />
-                        Publicação feita por equipe autorizada
-                    </div>
+                    
                 </aside>
             </div>
 
