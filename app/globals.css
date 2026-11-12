@@ -2001,19 +2001,25 @@ body {
     white-space: nowrap;
 }
 
-.topbar-brand-mark {
-    display: grid;
-    width: 19px;
-    height: 19px;
-    place-items: center;
-    border-radius: 6px;
-    background: #e8efff;
-    color: var(--primary);
+.topbar-status-dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: #35bc74;
+    box-shadow: 0 0 0 3px rgb(53 188 116 / 12%);
+    animation: topbar-status-pulse 2.4s ease-out infinite;
 }
 
-.topbar-brand-mark svg {
-    width: 12px;
-    height: 12px;
+@keyframes topbar-status-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 3px rgb(53 188 116 / 12%);
+    }
+
+    50% {
+        box-shadow: 0 0 0 5px rgb(53 188 116 / 5%);
+    }
 }
 
 .topbar-breadcrumb > svg {
@@ -3438,7 +3444,7 @@ body {
         max-width: 210px;
     }
 
-    .topbar-breadcrumb > span:not(.topbar-brand-mark) {
+    .topbar-breadcrumb > span:not(.topbar-status-dot) {
         display: none;
     }
 
@@ -5255,5 +5261,72 @@ body {
 
     .login-feature strong {
         font-size: 11px;
+    }
+}
+
+.logout-dialog-backdrop {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgb(16 28 48 / 52%);
+    backdrop-filter: blur(4px);
+}
+
+.logout-dialog {
+    width: min(100%, 440px);
+    padding: 30px;
+    border: 1px solid #e8eaf2;
+    border-radius: var(--radius-card);
+    background: var(--surface-card);
+    box-shadow: 0 24px 70px rgb(16 28 48 / 24%);
+}
+
+.logout-dialog-icon {
+    display: grid;
+    width: 46px;
+    height: 46px;
+    place-items: center;
+    margin-bottom: 20px;
+    border-radius: 14px;
+    background: #fff0ee;
+    color: var(--red);
+}
+
+.logout-dialog h2 {
+    margin-bottom: 8px;
+    font-size: 20px;
+    font-weight: 730;
+    letter-spacing: -0.45px;
+}
+
+.logout-dialog p {
+    margin-bottom: 24px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.logout-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.logout-dialog .button:focus-visible {
+    outline: 3px solid rgb(0 112 235 / 35%);
+    outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+    .logout-dialog {
+        padding: 24px;
+    }
+
+    .logout-dialog-actions {
+        align-items: stretch;
+        flex-direction: column-reverse;
     }
 }

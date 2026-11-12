@@ -24,6 +24,8 @@ export function AdminShell({
     const router = useRouter();
     const [menuOpen, setMenuOpen] = useState(false);
     const [globalSearch, setGlobalSearch] = useState("");
+    const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+    const [logoutPending, setLogoutPending] = useState(false);
     const adminEmail = useSyncExternalStore(
         subscribeToAdminEmail,
         getAdminEmail,
@@ -43,6 +45,29 @@ export function AdminShell({
         router.push(query ? `/reports?search=${encodeURIComponent(query)}` : "/reports");
     }
 
+    async function confirmLogout() {
+        setLogoutPending(true);
+        try {
+            const response = await fetch("/api/auth/logout", {
+                method: "POST",
+            });
+            clearAdminEmail();
+            if (!response.ok) {
+                const result = await response.json().catch(() => null);
+                window.alert(
+                    result?.error?.message ??
+                        "Não foi possível encerrar a sessão corretamente.",
+                );
+            }
+            setLogoutDialogOpen(false);
+            router.replace("/login");
+        } catch {
+            window.alert("Não foi possível encerrar a sessão corretamente.");
+        } finally {
+            setLogoutPending(false);
+        }
+    }
+
     useEffect(() => {
         const handleUnauthorized = () => {
             clearAdminEmail();
@@ -52,6 +77,18 @@ export function AdminShell({
         return () =>
             window.removeEventListener("farol:unauthorized", handleUnauthorized);
     }, [router]);
+
+    useEffect(() => {
+        if (!logoutDialogOpen) return;
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape" && !logoutPending) {
+                setLogoutDialogOpen(false);
+            }
+        };
+        window.addEventListener("keydown", handleEscape);
+        return () => window.removeEventListener("keydown", handleEscape);
+    }, [logoutDialogOpen, logoutPending]);
 
     return (
         <div className="app-frame">
@@ -105,20 +142,7 @@ export function AdminShell({
                     </div>
                     <button
                         className="nav-link logout-link"
-                        onClick={async () => {
-                            const response = await fetch("/api/auth/logout", {
-                                method: "POST",
-                            });
-                            clearAdminEmail();
-                            if (!response.ok) {
-                                const result = await response.json().catch(() => null);
-                                window.alert(
-                                    result?.error?.message ??
-                                        "Não foi possível encerrar a sessão corretamente.",
-                                );
-                            }
-                            router.replace("/login");
-                        }}
+                        onClick={() => setLogoutDialogOpen(true)}
                         type="button"
                     >
                         <Icon name="logout" />
@@ -137,8 +161,8 @@ export function AdminShell({
                         <Icon name="menu" />
                     </button>
                     <div aria-label={`Farol ADM, ${pageTitle}`} className="topbar-breadcrumb">
-                        <span className="topbar-brand-mark"><Icon name="pin" /></span>
-                        <span>Farol ADM</span>
+                        <span aria-hidden="true" className="topbar-status-dot" />
+                   
                         <Icon name="chevron" />
                         <strong>{pageTitle}</strong>
                     </div>
@@ -173,6 +197,51 @@ export function AdminShell({
                     onClick={() => setMenuOpen(false)}
                     type="button"
                 />
+            )}
+            {logoutDialogOpen && (
+                <div
+                    className="logout-dialog-backdrop"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget && !logoutPending) {
+                            setLogoutDialogOpen(false);
+                        }
+                    }}
+                >
+                    <section
+                        aria-describedby="logout-dialog-description"
+                        aria-labelledby="logout-dialog-title"
+                        aria-modal="true"
+                        className="logout-dialog"
+                        role="dialog"
+                    >
+                        <div className="logout-dialog-icon">
+                            <Icon name="logout" />
+                        </div>
+                        <h2 id="logout-dialog-title">Sair da sua conta?</h2>
+                        <p id="logout-dialog-description">
+                            Você precisará entrar novamente para acessar o painel.
+                        </p>
+                        <div className="logout-dialog-actions">
+                            <button
+                                autoFocus
+                                className="button button-outline"
+                                disabled={logoutPending}
+                                onClick={() => setLogoutDialogOpen(false)}
+                                type="button"
+                            >
+                                Continuar conectado
+                            </button>
+                            <button
+                                className="button button-danger"
+                                disabled={logoutPending}
+                                onClick={() => void confirmLogout()}
+                                type="button"
+                            >
+                                {logoutPending ? "Saindo..." : "Sair da conta"}
+                            </button>
+                        </div>
+                    </section>
+                </div>
             )}
         </div>
     );
