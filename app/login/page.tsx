@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { Icon } from "@/app/components/ui-icon";
@@ -65,7 +66,13 @@ function LoginForm() {
                 </div>
                 <div className="login-brand-content">
                     <Link className="brand login-brand" href="/">
-                        <span className="brand-mark"><Icon name="pin" /></span>
+                        <Image
+                            alt=""
+                            className="login-brand-logo"
+                            height={58}
+                            src="/farol-logo.png"
+                            width={58}
+                        />
                         <span>
                             <strong>Farol</strong>
                             <small>ADMINISTRAÇÃO</small>

@@ -4806,20 +4806,13 @@ body {
     margin: 0 0 24px;
 }
 
-.login-brand-panel .brand-mark {
-    width: 39px;
-    height: 39px;
-    border: 1px solid rgb(255 255 255 / 24%);
-    border-radius: 12px;
-    background: #f5f7fc;
-    color: #c64040;
-}
-
-.login-brand-panel .brand-mark svg {
-    width: 23px;
-    height: 23px;
-    fill: #c64040;
-    stroke: #f5f7fc;
+.login-brand-logo {
+    display: block;
+    width: 58px;
+    height: 58px;
+    flex: 0 0 auto;
+    border-radius: 13px;
+    object-fit: contain;
 }
 
 .login-brand-panel .brand strong {
