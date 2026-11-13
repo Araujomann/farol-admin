@@ -54,6 +54,12 @@ const ROUTES: BffRoute[] = [
     },
     {
         method: "GET",
+        pattern: /^moderation-history(\/moderators)?$/,
+        backend: (route) => `/admin/${route}`,
+        permission: "moderation_history:read",
+    },
+    {
+        method: "GET",
         pattern: /^notifications\/administrative-notices$/,
         backend: (route) => `/${route}`,
         permission: "authenticated",

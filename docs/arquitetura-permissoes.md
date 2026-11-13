@@ -526,7 +526,7 @@ if (hasStaffTrail) {
         prisma.user.update({
             where: { id: userId },
             data: {
-                name: "Ex-moderador",
+                name: "Conta removida",
                 email: `deleted+${userId}@invalid.local`,
                 password_hash: null, google_id: null,
                 deleted_at: new Date(),
@@ -538,7 +538,7 @@ if (hasStaffTrail) {
 }
 ```
 
-O histórico continua apontando para o mesmo `id`; o painel mostra “Ex-moderador
+O histórico continua apontando para o mesmo `id`; o painel mostra “Conta removida
 (conta removida)”. Atende LGPD (dado pessoal removido) sem perder a trilha.
 
 ## 7. Painel (farol-admin / Next 16)
@@ -616,7 +616,7 @@ Navegação declarativa em `admin-shell.tsx`:
 const navigation = [
     { href: "/",                     label: "Visão geral",          icon: "dashboard", permission: "stats:read" },
     { href: "/reports",              label: "Relatos",              icon: "reports",   permission: "reports:read" },
-    { href: "/moderacao/historico",  label: "Histórico",            icon: "history",   permission: "moderation_history:read" },
+    { href: "/moderation-history",    label: "Histórico",            icon: "clock",     permission: "moderation_history:read" },
     { href: "/notices",              label: "Avisos à comunidade",  icon: "bell",      permission: "notices:publish" },
     // Seção "Administração" — só aparece se houver ao menos um item
     { href: "/equipe",               label: "Equipe e convites",    icon: "users",     permission: "invites:manage" },
@@ -647,7 +647,7 @@ lugar do texto fixo atual.
 
 | Rota | Permissão | Conteúdo |
 |---|---|---|
-| `/moderacao/historico` | `moderation_history:read` | Tabela: data, relato, decisão, moderador, mensagem; filtros |
+| `/moderation-history` | `moderation_history:read` | Tabela: data, relato, decisão, moderador, mensagem; filtros |
 | `/equipe` | `invites:manage` | Abas **Moderadores** (remover) e **Convites** (pendentes/expirados/revogados/aceitos; reenviar/revogar); botão “Convidar” (`moderators:invite`) |
 | `/usuarios` | `users:manage` | Busca, detalhe, suspender/reativar, encerrar sessões |
 | `/auditoria` | `audit:read` | Linha do tempo com ator, ação, alvo, metadados |
@@ -695,7 +695,7 @@ No painel: testes dos helpers `Can`/`useCan` e do filtro de navegação por perm
 
 1. ✅ **API — base:** `permissions.ts`, `requirePermission`, `staff()`, `permissions` no usuário; rotas existentes migradas; `canManageAccident`/`canManageUserContent` por permissão. Testes em `tests/permissions.test.ts`. (A auditoria das ações de staff entra na fase 4, junto com a tabela `AdminAuditLog`.)
 2. ✅ **Painel — sessão:** `getSession`/`requirePagePermission` (`lib/session.ts`), route group `(panel)`, `PermissionsProvider`/`useCan`/`<Can>`, navegação filtrada, papel real no topo, `/sem-permissao`, tabela de rotas no BFF, tratamento de 403. O `proxy.ts` renova o access token vencido antes da renderização (Server Components não gravam cookies), então não foi preciso uma rota `/api/auth/session`.
-3. **Histórico:** endpoint global, triggers somente-inserção, anonimização em `deleteMe`, tela de histórico.
+3. ✅ **Histórico:** `GET /admin/moderation-history` (+ `/moderators`) com filtros, dentro do `adminPlugin` que nega rota sem `config.permission`; trigger somente-inserção em `AccidentModerationHistory` (DELETE só com `crashmap.allow_history_purge` ligado na transação, usado pela limpeza dos testes); `deleteMe` anonimiza ex-staff com trilha (`deleted_at`, nome “Conta removida”) e o guard recusa conta anonimizada; tela `/moderation-history` no painel.
 4. **Convites + equipe:** migration (`ModeratorInvite`, `AdminAuditLog`), e-mail, aceite, revogação/reenvio, remoção de moderador, telas `/equipe` e `/convite`.
 5. **Usuários, auditoria, configurações** e o script `admin:grant-role`.
 6. Endurecimento: CORS restrito, rate limit, `trustProxy`.

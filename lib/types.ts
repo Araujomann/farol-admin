@@ -66,3 +66,26 @@ export interface ApiError {
 export interface ApiEnvelope<T> {
     data: T;
 }
+
+export interface ModerationHistoryActor {
+    id: string;
+    name: string;
+    email: string;
+    /** Conta removida e anonimizada; a decisão continua atribuída a ela. */
+    is_deleted: boolean;
+}
+
+export interface ModerationHistoryItem {
+    id: string;
+    previous_status: ModerationStatus;
+    new_status: ModerationStatus;
+    public_message: string | null;
+    internal_note: string | null;
+    created_at: string;
+    moderated_by: ModerationHistoryActor;
+    accident: { id: string; tipo_acidente: string; severity: Severity };
+}
+
+export interface ModerationHistoryModerator extends ModerationHistoryActor {
+    decisions_count: number;
+}

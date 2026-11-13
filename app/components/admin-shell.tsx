@@ -22,6 +22,12 @@ interface NavigationItem {
 const navigation: NavigationItem[] = [
     { href: "/", label: "Visão geral", icon: "dashboard", permission: "stats:read" },
     { href: "/reports", label: "Relatos", icon: "reports", permission: "reports:read" },
+    {
+        href: "/moderation-history",
+        label: "Histórico de moderação",
+        icon: "clock",
+        permission: "moderation_history:read",
+    },
     { href: "/notices", label: "Avisos à comunidade", icon: "bell", permission: "notices:publish" },
 ];
 
@@ -42,9 +48,11 @@ export function AdminShell({
         ? "Análise do relato"
         : pathname.startsWith("/reports")
           ? "Relatos"
-          : pathname.startsWith("/notices")
-            ? "Avisos à comunidade"
-            : "Painel de Controle";
+          : pathname.startsWith("/moderation-history")
+            ? "Histórico de moderação"
+            : pathname.startsWith("/notices")
+              ? "Avisos à comunidade"
+              : "Painel de Controle";
 
     function searchReports(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
