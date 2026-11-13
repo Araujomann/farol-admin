@@ -127,3 +127,62 @@ export interface TeamMember {
     created_at: string;
     joined_at: string | null;
 }
+
+export interface AdminUser {
+    id: string;
+    name: string;
+    email: string;
+    role: "user" | "moderator" | "admin";
+    is_email_verified: boolean;
+    created_at: string;
+    suspended_at: string | null;
+    suspended_reason: string | null;
+    suspended_by: TeamPerson | null;
+}
+
+export interface AdminUserDetail extends AdminUser {
+    reports_count: number;
+    comments_count: number;
+    decisions_count: number;
+    active_sessions: number;
+}
+
+export type AuditAction =
+    | "MODERATOR_INVITE_CREATED"
+    | "MODERATOR_INVITE_RESENT"
+    | "MODERATOR_INVITE_REVOKED"
+    | "MODERATOR_INVITE_ACCEPTED"
+    | "MODERATOR_ROLE_REVOKED"
+    | "REPORT_EDITED_BY_STAFF"
+    | "REPORT_DELETED_BY_STAFF"
+    | "COMMENT_DELETED_BY_STAFF"
+    | "IMAGE_DELETED_BY_STAFF"
+    | "USER_SUSPENDED"
+    | "USER_REACTIVATED"
+    | "USER_SESSIONS_REVOKED"
+    | "SETTINGS_UPDATED"
+    | "ROLE_GRANTED_BY_SCRIPT";
+
+export interface AuditLogEntry {
+    id: string;
+    action: AuditAction;
+    target_type: string;
+    target_id: string | null;
+    metadata: Record<string, unknown>;
+    ip: string | null;
+    user_agent: string | null;
+    created_at: string;
+    /** `null`: ação de script/sistema. */
+    actor: ModerationHistoryActor | null;
+}
+
+export interface PlatformSettingItem {
+    key: string;
+    value: number;
+    default: number;
+    min: number;
+    max: number;
+    description: string;
+    updated_at: string | null;
+    updated_by: TeamPerson | null;
+}

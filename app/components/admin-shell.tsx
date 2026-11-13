@@ -30,6 +30,21 @@ const navigation: NavigationItem[] = [
     },
     { href: "/notices", label: "Avisos à comunidade", icon: "bell", permission: "notices:publish" },
     { href: "/team", label: "Equipe e convites", icon: "users", permission: "invites:manage" },
+    { href: "/users", label: "Usuários", icon: "user", permission: "users:manage" },
+    { href: "/audit", label: "Auditoria", icon: "shield", permission: "audit:read" },
+    { href: "/settings", label: "Configurações", icon: "settings", permission: "settings:manage" },
+];
+
+// Título do topo por prefixo de rota; o primeiro que casar vale.
+const pageTitles: Array<[prefix: string, title: string]> = [
+    ["/reports/", "Análise do relato"],
+    ["/reports", "Relatos"],
+    ["/moderation-history", "Histórico de moderação"],
+    ["/notices", "Avisos à comunidade"],
+    ["/team", "Equipe e convites"],
+    ["/users", "Usuários"],
+    ["/audit", "Auditoria"],
+    ["/settings", "Configurações"],
 ];
 
 export function AdminShell({
@@ -45,17 +60,9 @@ export function AdminShell({
     const can = usePermissions();
     const visibleNavigation = navigation.filter((item) => can(item.permission));
     const canSearchReports = can("reports:read");
-    const pageTitle = pathname.startsWith("/reports/")
-        ? "Análise do relato"
-        : pathname.startsWith("/reports")
-          ? "Relatos"
-          : pathname.startsWith("/moderation-history")
-            ? "Histórico de moderação"
-            : pathname.startsWith("/notices")
-              ? "Avisos à comunidade"
-              : pathname.startsWith("/team")
-                ? "Equipe e convites"
-                : "Painel de Controle";
+    const pageTitle =
+        pageTitles.find(([prefix]) => pathname.startsWith(prefix))?.[1] ??
+        "Painel de Controle";
 
     function searchReports(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();

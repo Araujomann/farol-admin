@@ -12,6 +12,7 @@ export function ConfirmDialog({
     pendingLabel,
     pending,
     confirmDisabled = false,
+    tone = "danger",
     onConfirm,
     onCancel,
     children,
@@ -23,6 +24,8 @@ export function ConfirmDialog({
     pendingLabel: string;
     pending: boolean;
     confirmDisabled?: boolean;
+    /** `primary` para ações que não destroem nada (ex.: reativar). */
+    tone?: "danger" | "primary";
     onConfirm: () => void;
     onCancel: () => void;
     children?: React.ReactNode;
@@ -65,7 +68,7 @@ export function ConfirmDialog({
                         Cancelar
                     </button>
                     <button
-                        className="button button-danger"
+                        className={`button ${tone === "primary" ? "button-primary" : "button-danger"}`}
                         disabled={pending || confirmDisabled}
                         onClick={onConfirm}
                         type="button"

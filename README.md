@@ -28,21 +28,25 @@ ocupada, use `npm run dev -- --port 3001`.
 ## Segurança e acesso
 
 - O navegador não recebe tokens de acesso ou refresh. O BFF do Next os guarda em cookies `HttpOnly`, `SameSite=Lax` e `Secure` em produção.
-- O login recusa usuários sem papel administrativo ou com e-mail não verificado.
-- A autorização efetiva é aplicada também pela Crash Map API em todas as rotas administrativas; ocultar páginas não concede permissão.
-- Promova contas de equipe somente por um procedimento administrativo protegido no banco. O endpoint público de registro não concede papéis elevados.
+- O login recusa contas sem a permissão `panel:access`, com e-mail não verificado ou suspensas.
+- A autorização efetiva é aplicada pela Crash Map API em todas as rotas; o painel só esconde o que a conta não pode fazer. A arquitetura completa está em [docs/arquitetura-permissoes.md](docs/arquitetura-permissoes.md).
 - `CRASHMAP_API_URL` é uma variável de servidor e não deve usar o prefixo `NEXT_PUBLIC_`.
 
-Depois que a conta tiver sido criada e verificada pelo fluxo normal da API, um administrador de banco pode conceder o papel de moderador:
+## Papéis e equipe
 
-```sql
-UPDATE "User"
-SET role = 'moderator'
-WHERE email = lower('moderador@exemplo.com')
-  AND is_email_verified = true;
+| Papel | Pode |
+|---|---|
+| Moderador | Painel, aprovar/rejeitar relatos, histórico de moderação, estatísticas, avisos à comunidade |
+| Administrador | Tudo do moderador, mais: convidar e remover moderadores, gerenciar convites, gerenciar contas, auditoria e configurações |
+
+- **Moderadores** entram por convite: em **Equipe e convites**, o administrador informa o e-mail; o convidado recebe um link (válido pelo tempo definido em **Configurações**, padrão 72 h) e o aceita entrando com a própria conta do Farol, já verificada. Na API, defina `ADMIN_PANEL_URL` com o endereço deste painel para que o link aponte para cá.
+- **O primeiro administrador** é criado no servidor da API, depois que a conta foi registrada e verificada pelo aplicativo:
+
+```bash
+pnpm admin:grant-role admin@exemplo.com admin
 ```
 
-Confirme que exatamente uma conta foi atualizada; não altere `is_email_verified` para contornar a verificação de e-mail.
+O script exige e-mail verificado, não remove o último administrador ativo e registra a alteração na auditoria. Não altere papéis direto no banco.
 
 ## Contratos de moderação adicionados na API
 

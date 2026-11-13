@@ -90,6 +90,36 @@ const ROUTES: BffRoute[] = [
     },
     {
         method: "GET",
+        pattern: new RegExp(`^users(/${UUID})?$`, "i"),
+        backend: (route) => `/admin/${route}`,
+        permission: "users:manage",
+    },
+    {
+        method: "POST",
+        pattern: new RegExp(`^users/${UUID}/(suspend|reactivate|sessions/revoke)$`, "i"),
+        backend: (route) => `/admin/${route}`,
+        permission: "users:manage",
+    },
+    {
+        method: "GET",
+        pattern: /^audit-logs$/,
+        backend: (route) => `/admin/${route}`,
+        permission: "audit:read",
+    },
+    {
+        method: "GET",
+        pattern: /^settings$/,
+        backend: (route) => `/admin/${route}`,
+        permission: "settings:manage",
+    },
+    {
+        method: "PATCH",
+        pattern: /^settings$/,
+        backend: (route) => `/admin/${route}`,
+        permission: "settings:manage",
+    },
+    {
+        method: "GET",
         pattern: /^notifications\/administrative-notices$/,
         backend: (route) => `/${route}`,
         permission: "authenticated",

@@ -152,6 +152,25 @@ const paths: Record<string, React.ReactNode> = {
         </>
     ),
     menu: <path d="M4 6h16M4 12h16M4 18h16" />,
+    user: (
+        <>
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" />
+        </>
+    ),
+    shield: (
+        <>
+            <path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.4 7.5 9.5 4.4-1.1 7.5-4.9 7.5-9.5V6L12 3Z" />
+            <path d="m9 12 2 2 4-4" />
+        </>
+    ),
+    settings: (
+        <>
+            <path d="M4 7h10M18 7h2M4 17h4M12 17h8" />
+            <circle cx="16" cy="7" r="2" />
+            <circle cx="10" cy="17" r="2" />
+        </>
+    ),
 };
 
 export type IconName = keyof typeof paths;

@@ -115,7 +115,10 @@ export function TeamClient({ currentUserId }: { currentUserId: string }) {
     function deliveryNotice(delivery: InviteDelivery, verb: string) {
         setNotice(
             delivery.email_sent
-                ? { tone: "success", text: `Convite ${verb} para ${delivery.invite.email}. O link vale 72 horas.` }
+                ? {
+                      tone: "success",
+                      text: `Convite ${verb} para ${delivery.invite.email}. O link vale até ${formatDate(delivery.invite.expires_at)}.`,
+                  }
                 : {
                       tone: "error",
                       text: `O convite para ${delivery.invite.email} foi ${verb === "enviado" ? "criado" : "renovado"}, mas o e-mail não pôde ser enviado. Tente reenviar em instantes.`,
