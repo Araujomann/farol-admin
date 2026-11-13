@@ -4,16 +4,11 @@ import {
     apiBaseUrl,
     setAdminCookies,
 } from "@/lib/backend";
+import type { SessionUser } from "@/lib/permissions";
 
 interface LoginResult {
     data: {
-        user: {
-            id: string;
-            name: string;
-            email: string;
-            role: "user" | "moderator" | "admin";
-            is_email_verified: boolean;
-        };
+        user: SessionUser & { is_email_verified: boolean };
         tokens: { accessToken: string; refreshToken: string };
     };
 }
@@ -65,7 +60,7 @@ export async function POST(request: NextRequest) {
 
         const { user, tokens } = result.data;
         if (
-            (user.role !== "moderator" && user.role !== "admin") ||
+            !user.permissions?.includes("panel:access") ||
             !user.is_email_verified
         ) {
             return NextResponse.json(
@@ -80,7 +75,17 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const response = NextResponse.json({ data: { user } });
+        const response = NextResponse.json({
+            data: {
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                    permissions: user.permissions,
+                },
+            },
+        });
         return setAdminCookies(response, tokens);
     } catch (error) {
         if (error instanceof ApiConfigurationError) {

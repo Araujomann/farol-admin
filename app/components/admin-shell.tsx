@@ -3,18 +3,26 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState, useSyncExternalStore } from "react";
-import { Icon } from "@/app/components/ui-icon";
+import { FormEvent, useEffect, useState } from "react";
 import {
-    clearAdminEmail,
-    getAdminEmail,
-    subscribeToAdminEmail,
-} from "@/lib/admin-session";
+    usePermissions,
+    useSessionUser,
+} from "@/app/components/permissions-provider";
+import { Icon, type IconName } from "@/app/components/ui-icon";
+import { formatRole, type Permission } from "@/lib/permissions";
 
-const navigation = [
-    { href: "/", label: "Visão geral", icon: "dashboard" as const },
-    { href: "/reports", label: "Relatos", icon: "reports" as const },
-    { href: "/notices", label: "Avisos à comunidade", icon: "bell" as const },
+interface NavigationItem {
+    href: string;
+    label: string;
+    icon: IconName;
+    permission: Permission;
+}
+
+// Cada item só aparece para quem tem a permissão correspondente.
+const navigation: NavigationItem[] = [
+    { href: "/", label: "Visão geral", icon: "dashboard", permission: "stats:read" },
+    { href: "/reports", label: "Relatos", icon: "reports", permission: "reports:read" },
+    { href: "/notices", label: "Avisos à comunidade", icon: "bell", permission: "notices:publish" },
 ];
 
 export function AdminShell({
@@ -26,11 +34,10 @@ export function AdminShell({
     const [globalSearch, setGlobalSearch] = useState("");
     const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
     const [logoutPending, setLogoutPending] = useState(false);
-    const adminEmail = useSyncExternalStore(
-        subscribeToAdminEmail,
-        getAdminEmail,
-        () => "",
-    );
+    const user = useSessionUser();
+    const can = usePermissions();
+    const visibleNavigation = navigation.filter((item) => can(item.permission));
+    const canSearchReports = can("reports:read");
     const pageTitle = pathname.startsWith("/reports/")
         ? "Análise do relato"
         : pathname.startsWith("/reports")
@@ -51,7 +58,6 @@ export function AdminShell({
             const response = await fetch("/api/auth/logout", {
                 method: "POST",
             });
-            clearAdminEmail();
             if (!response.ok) {
                 const result = await response.json().catch(() => null);
                 window.alert(
@@ -69,13 +75,17 @@ export function AdminShell({
     }
 
     useEffect(() => {
-        const handleUnauthorized = () => {
-            clearAdminEmail();
-            router.replace("/login");
-        };
+        const handleUnauthorized = () => router.replace("/login");
+        // A API recusou por permissão: as permissões podem ter mudado (por
+        // exemplo, o moderador foi removido). Recarrega a sessão no servidor;
+        // se o acesso ao painel caiu, as páginas redirecionam.
+        const handleForbidden = () => router.refresh();
         window.addEventListener("farol:unauthorized", handleUnauthorized);
-        return () =>
+        window.addEventListener("farol:forbidden", handleForbidden);
+        return () => {
             window.removeEventListener("farol:unauthorized", handleUnauthorized);
+            window.removeEventListener("farol:forbidden", handleForbidden);
+        };
     }, [router]);
 
     useEffect(() => {
@@ -112,7 +122,7 @@ export function AdminShell({
                 </Link>
                 <div className="sidebar-label">NAVEGAÇÃO PRINCIPAL</div>
                 <nav aria-label="Navegação principal" className="side-nav">
-                    {navigation.map((item) => {
+                    {visibleNavigation.map((item) => {
                         const active =
                             item.href === "/"
                                 ? pathname === "/"
@@ -166,15 +176,17 @@ export function AdminShell({
                         <Icon name="chevron" />
                         <strong>{pageTitle}</strong>
                     </div>
-                    <form className="topbar-search" onSubmit={searchReports} role="search">
-                        <Icon name="search" />
-                        <input
-                            aria-label="Buscar relatos"
-                            onChange={(event) => setGlobalSearch(event.target.value)}
-                            placeholder="Buscar ocorrência, placa, protocolo"
-                            value={globalSearch}
-                        />
-                    </form>
+                    {canSearchReports && (
+                        <form className="topbar-search" onSubmit={searchReports} role="search">
+                            <Icon name="search" />
+                            <input
+                                aria-label="Buscar relatos"
+                                onChange={(event) => setGlobalSearch(event.target.value)}
+                                placeholder="Buscar ocorrência, placa, protocolo"
+                                value={globalSearch}
+                            />
+                        </form>
+                    )}
                     <div className="topbar-account">
                         <span className="role-pill">
                             <Icon name="lock" />
@@ -182,10 +194,12 @@ export function AdminShell({
                         </span>
                         <span className="account-divider" />
                         <span className="account-copy">
-                            <strong>Administrador</strong>
-                            {adminEmail && <small title={adminEmail}>{adminEmail}</small>}
+                            <strong>{user ? formatRole(user.role) : "Equipe"}</strong>
+                            {user && <small title={user.email}>{user.name}</small>}
                         </span>
-                        <span aria-hidden="true" className="account-avatar">A</span>
+                        <span aria-hidden="true" className="account-avatar">
+                            {user?.name.trim().charAt(0).toUpperCase() || "?"}
+                        </span>
                     </div>
                 </header>
                 <main className="main-content">{children}</main>

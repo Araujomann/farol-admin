@@ -51,7 +51,7 @@ const cards = [
     },
 ];
 
-export default function DashboardPage() {
+export function DashboardClient() {
     const [summary, setSummary] = useState<Summary | null>(null);
     const [recentReports, setRecentReports] = useState<AccidentListItem[]>([]);
     const [error, setError] = useState("");

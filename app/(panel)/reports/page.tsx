@@ -1,4 +1,5 @@
-import { ReportsClient } from "@/app/reports/reports-client";
+import { ReportsClient } from "@/app/(panel)/reports/reports-client";
+import { requirePagePermission } from "@/lib/session";
 import type { ModerationStatus, Severity } from "@/lib/types";
 
 type ReportsPageProps = {
@@ -18,6 +19,7 @@ const moderationStatuses: ModerationStatus[] = [
 export default async function ReportsPage({
     searchParams,
 }: ReportsPageProps) {
+    await requirePagePermission("reports:read");
     const params = await searchParams;
     const requestedStatus = Array.isArray(params.status)
         ? params.status[0]

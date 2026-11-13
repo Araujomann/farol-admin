@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { Icon } from "@/app/components/ui-icon";
-import { setAdminEmail } from "@/lib/admin-session";
 
 function LoginForm() {
     const searchParams = useSearchParams();
@@ -33,12 +32,6 @@ function LoginForm() {
                     result?.error?.message ?? "Não foi possível entrar.",
                 );
             }
-            const adminEmail = result?.data?.user?.email;
-            if (typeof adminEmail !== "string") {
-                throw new Error("Não foi possível identificar o e-mail da conta.");
-            }
-            setAdminEmail(adminEmail);
-
             const next = searchParams.get("next");
             const destination =
                 next?.startsWith("/") && !next.startsWith("//")

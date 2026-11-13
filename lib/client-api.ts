@@ -18,6 +18,10 @@ export async function adminFetch<T>(
         if (response.status === 401) {
             window.dispatchEvent(new Event("farol:unauthorized"));
         }
+        if (response.status === 403 && payload?.error?.code?.startsWith("AUTH_")) {
+            // Permissões podem ter mudado desde o carregamento da página.
+            window.dispatchEvent(new Event("farol:forbidden"));
+        }
         throw new Error(
             payload?.error?.message ??
                 `Não foi possível concluir a solicitação (${response.status}).`,

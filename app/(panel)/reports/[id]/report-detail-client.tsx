@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { AdminShell } from "@/app/components/admin-shell";
+import { useCan } from "@/app/components/permissions-provider";
 import { Icon } from "@/app/components/ui-icon";
 import { StatusBadge } from "@/app/components/status-badge";
 import { adminFetch } from "@/lib/client-api";
@@ -16,7 +17,7 @@ import {
 } from "@/lib/format";
 import type { AccidentDetail, ApiEnvelope, ModerationStatus } from "@/lib/types";
 
-export default function ReportDetailPage() {
+export function ReportDetailClient() {
     const { id } = useParams<{ id: string }>();
     const [accident, setAccident] = useState<AccidentDetail | null>(null);
     const [loading, setLoading] = useState(true);
@@ -27,6 +28,7 @@ export default function ReportDetailPage() {
     const [internalNote, setInternalNote] = useState("");
     const [editTitle, setEditTitle] = useState("");
     const [editDescription, setEditDescription] = useState("");
+    const canModerate = useCan("reports:moderate");
 
     const loadAccident = useCallback(async () => {
         try {
@@ -157,6 +159,9 @@ export default function ReportDetailPage() {
 
     if (!accident) return null;
 
+    const isPending = accident.moderation_status === "PENDING";
+    // Relato decidido: travado para todos. Pendente: só quem pode moderar edita.
+    const editable = isPending && canModerate;
     const mapUrl = `https://www.openstreetmap.org/?mlat=${accident.latitude}&mlon=${accident.longitude}#map=16/${accident.latitude}/${accident.longitude}`;
     const mapBounds = [
         accident.longitude - 0.008,
@@ -197,7 +202,7 @@ export default function ReportDetailPage() {
                                 {formatSeverity(accident.severity)}
                             </span>
                         </div>
-                        {accident.moderation_status === "PENDING" ? (
+                        {editable ? (
                             <form
                                 className="report-edit-form"
                                 onSubmit={(event) => {
@@ -254,6 +259,14 @@ export default function ReportDetailPage() {
                             </form>
                         ) : (
                             <p className="description-text">
+                                {isPending && (
+                                    // Sem o formulário de edição, o título
+                                    // pendente não apareceria em lugar nenhum.
+                                    <>
+                                        <strong>{accident.tipo_acidente}</strong>
+                                        <br />
+                                    </>
+                                )}
                                 {accident.description ||
                                     "O usuário não adicionou uma descrição."}
                             </p>
@@ -399,11 +412,11 @@ export default function ReportDetailPage() {
                         <h2>Registrar análise</h2>
                         <label className="form-label" htmlFor="public-message">
                             Justificativa ou mensagem ao usuário
-                            {accident.moderation_status === "PENDING" && " *"}
+                            {editable && " *"}
                         </label>
                         <textarea
                             className="text-area"
-                            disabled={accident.moderation_status !== "PENDING" || saving}
+                            disabled={!editable || saving}
                             id="public-message"
                             maxLength={2000}
                             onChange={(event) => setPublicMessage(event.target.value)}
@@ -415,14 +428,19 @@ export default function ReportDetailPage() {
                         </label>
                         <textarea
                             className="text-area text-area-short"
-                            disabled={accident.moderation_status !== "PENDING" || saving}
+                            disabled={!editable || saving}
                             id="internal-note"
                             maxLength={4000}
                             onChange={(event) => setInternalNote(event.target.value)}
                             placeholder="Visível somente para administradores."
                             value={internalNote}
                         />
-                        {accident.moderation_status === "PENDING" ? (
+                        {isPending && !canModerate ? (
+                            <p className="decision-locked">
+                                Sua conta pode consultar este relato, mas não tem
+                                permissão para aprová-lo ou rejeitá-lo.
+                            </p>
+                        ) : editable ? (
                             <div className="decision-actions">
                                 <button
                                     className="button button-primary"

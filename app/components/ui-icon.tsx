@@ -154,10 +154,12 @@ const paths: Record<string, React.ReactNode> = {
     menu: <path d="M4 6h16M4 12h16M4 18h16" />,
 };
 
+export type IconName = keyof typeof paths;
+
 export function Icon({
     name,
     ...props
-}: SVGProps<SVGSVGElement> & { name: keyof typeof paths }) {
+}: SVGProps<SVGSVGElement> & { name: IconName }) {
     return (
         <svg
             aria-hidden="true"
