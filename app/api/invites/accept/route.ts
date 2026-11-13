@@ -5,6 +5,7 @@ import {
     setAdminCookies,
 } from "@/lib/backend";
 import type { SessionUser } from "@/lib/permissions";
+import { clientIpFrom, forwardedForHeader } from "@/lib/session-tokens";
 
 type ApiErrorBody = { error?: { code?: string; message?: string } };
 
@@ -64,10 +65,12 @@ export async function POST(request: NextRequest) {
         return errorResponse(400, "INVALID_CREDENTIALS", "Informe e-mail e senha.");
     }
 
+    const ipHeader = forwardedForHeader(clientIpFrom(request.headers));
+
     try {
         const loginResponse = await fetch(`${apiBaseUrl()}/auth/login`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", ...ipHeader },
             body: JSON.stringify({ email, password }),
             cache: "no-store",
         });
@@ -76,11 +79,14 @@ export async function POST(request: NextRequest) {
             | ApiErrorBody;
 
         if (!loginResponse.ok || !("data" in login)) {
-            const code = ("error" in login && login.error?.code) || "LOGIN_FAILED";
+            const loginError = "error" in login ? login.error : undefined;
+            const code = loginError?.code || "LOGIN_FAILED";
             return errorResponse(
                 loginResponse.ok ? 502 : loginResponse.status,
                 code,
-                ACCEPT_MESSAGES[code] ?? "Não foi possível entrar com essa conta.",
+                ACCEPT_MESSAGES[code] ??
+                    loginError?.message ??
+                    "Não foi possível entrar com essa conta.",
             );
         }
 
@@ -90,6 +96,7 @@ export async function POST(request: NextRequest) {
             headers: {
                 Authorization: `Bearer ${tokens.accessToken}`,
                 "Content-Type": "application/json",
+                ...ipHeader,
             },
             body: JSON.stringify({ token }),
             cache: "no-store",

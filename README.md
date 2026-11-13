@@ -31,6 +31,15 @@ ocupada, use `npm run dev -- --port 3001`.
 - O login recusa contas sem a permissão `panel:access`, com e-mail não verificado ou suspensas.
 - A autorização efetiva é aplicada pela Crash Map API em todas as rotas; o painel só esconde o que a conta não pode fazer. A arquitetura completa está em [docs/arquitetura-permissoes.md](docs/arquitetura-permissoes.md).
 - `CRASHMAP_API_URL` é uma variável de servidor e não deve usar o prefixo `NEXT_PUBLIC_`.
+- O painel repassa à API o IP do navegador (`X-Forwarded-For`), usado na auditoria e nos limites de tentativas. Em produção, hospede o painel atrás de um proxy que acrescente ou sobrescreva esse cabeçalho e configure `TRUST_PROXY` na API com o endereço do painel.
+- Login e aceite de convite têm limite de tentativas; ao estourar, a tela mostra quanto tempo esperar.
+
+## Checklist de produção
+
+1. Na API: `prisma migrate deploy` e as variáveis `ADMIN_PANEL_URL` (endereço HTTPS do painel), `TRUST_PROXY` e, se houver app web, `CORS_ORIGINS` — exemplos em `crashmap-api/.env.example`.
+2. Envie os e-mails de um domínio próprio (SPF/DKIM) ou de um serviço transacional; um Gmail comum funciona, mas os filtros desconfiam mais.
+3. No painel: `CRASHMAP_API_URL` apontando para a API.
+4. Crie o primeiro administrador com `pnpm admin:grant-role`.
 
 ## Papéis e equipe
 

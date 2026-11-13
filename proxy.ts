@@ -4,6 +4,7 @@ import {
     ACCESS_COOKIE_MAX_AGE,
     REFRESH_COOKIE,
     REFRESH_COOKIE_MAX_AGE,
+    clientIpFrom,
     cookieOptions,
     exchangeRefreshToken,
     isAccessTokenFresh,
@@ -33,7 +34,7 @@ export async function proxy(request: NextRequest) {
 
     let tokens;
     try {
-        tokens = await exchangeRefreshToken(refreshToken);
+        tokens = await exchangeRefreshToken(refreshToken, clientIpFrom(request.headers));
     } catch {
         // API fora do ar ou não configurada: deixa a página renderizar e
         // mostrar o erro em vez de derrubar a sessão.

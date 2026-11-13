@@ -5,6 +5,7 @@ import {
     setAdminCookies,
 } from "@/lib/backend";
 import type { SessionUser } from "@/lib/permissions";
+import { clientIpFrom, forwardedForHeader } from "@/lib/session-tokens";
 
 interface LoginResult {
     data: {
@@ -39,7 +40,10 @@ export async function POST(request: NextRequest) {
     try {
         const backendResponse = await fetch(`${apiBaseUrl()}/auth/login`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                ...forwardedForHeader(clientIpFrom(request.headers)),
+            },
             body: JSON.stringify(credentials),
             cache: "no-store",
         });

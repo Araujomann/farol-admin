@@ -37,13 +37,35 @@ export interface SessionTokens {
     refreshToken: string;
 }
 
+/**
+ * IP do navegador visto por este servidor. Usa o ÚLTIMO item de
+ * X-Forwarded-For: é o que o proxy mais próximo acrescentou (ou o próprio
+ * Next, a partir do socket); os primeiros itens podem ter sido enviados pelo
+ * cliente. Em produção, o proxy da hospedagem deve acrescentar ou sobrescrever
+ * esse cabeçalho.
+ */
+export function clientIpFrom(headers: Headers): string | null {
+    const forwarded = headers.get("x-forwarded-for");
+    const last = forwarded?.split(",").map((item) => item.trim()).filter(Boolean).pop();
+    return last || headers.get("x-real-ip")?.trim() || null;
+}
+
+/** Repassa o IP do navegador para a API (auditoria e limites por IP). */
+export function forwardedForHeader(clientIp: string | null): Record<string, string> {
+    return clientIp ? { "X-Forwarded-For": clientIp } : {};
+}
+
 /** Troca o refresh token por um novo par. Retorna `null` se a API recusar. */
 export async function exchangeRefreshToken(
     refreshToken: string,
+    clientIp: string | null = null,
 ): Promise<SessionTokens | null> {
     const response = await fetch(`${apiBaseUrl()}/auth/refresh`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            ...forwardedForHeader(clientIp),
+        },
         body: JSON.stringify({ refreshToken }),
         cache: "no-store",
     });

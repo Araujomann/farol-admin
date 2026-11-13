@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import {
     ACCESS_COOKIE,
@@ -7,16 +7,23 @@ import {
     REFRESH_COOKIE,
     REFRESH_COOKIE_MAX_AGE,
     apiBaseUrl,
+    clientIpFrom,
     cookieOptions,
     exchangeRefreshToken,
+    forwardedForHeader,
     type SessionTokens,
 } from "@/lib/session-tokens";
+
+/** IP do navegador da requisição atual (Route Handlers e Server Components). */
+export async function currentClientIp() {
+    return clientIpFrom(await headers());
+}
 
 async function refreshAccessToken(store: Awaited<ReturnType<typeof cookies>>) {
     const refreshToken = store.get(REFRESH_COOKIE)?.value;
     if (!refreshToken) return null;
 
-    const tokens = await exchangeRefreshToken(refreshToken);
+    const tokens = await exchangeRefreshToken(refreshToken, await currentClientIp());
     if (!tokens) {
         store.delete(ACCESS_COOKIE);
         store.delete(REFRESH_COOKIE);
@@ -44,6 +51,7 @@ export async function requestBackend(
         headers: {
             Authorization: `Bearer ${token}`,
             ...(body ? { "Content-Type": "application/json" } : {}),
+            ...forwardedForHeader(await currentClientIp()),
         },
         ...(body ? { body } : {}),
         cache: "no-store",
