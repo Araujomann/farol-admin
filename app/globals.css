@@ -5414,3 +5414,138 @@ body {
 .history-notes .table-secondary {
     white-space: normal;
 }
+
+.invite-card {
+    display: grid;
+    gap: 12px;
+}
+
+.invite-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.invite-brand strong,
+.invite-brand small {
+    display: block;
+}
+
+.invite-brand strong {
+    color: var(--ink);
+    font-size: 16px;
+}
+
+.invite-brand small {
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+}
+
+.invite-card h1 {
+    margin: 6px 0 0;
+    color: var(--ink);
+    font-size: 20px;
+}
+
+.invite-card p {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.invite-form {
+    text-align: left;
+    display: grid;
+    gap: 8px;
+}
+
+.invite-form .button {
+    margin-top: 8px;
+}
+
+.invite-card .invite-footnote {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.status-expired {
+    background: #f1f3f8;
+    color: #5b6478;
+}
+
+.status-expired .status-dot {
+    background: #8a93a6;
+}
+
+.team-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.invite-create-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    margin-bottom: 18px;
+}
+
+.invite-create-form .text-input {
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.team-section {
+    margin-bottom: 22px;
+}
+
+.team-section-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0 0 10px;
+}
+
+.team-section-heading h2 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 15px;
+}
+
+.row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.role-tag {
+    display: inline-flex;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #eef3fd;
+    color: var(--primary);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.role-tag-admin {
+    background: #f3edff;
+    color: #5b2bb5;
+}
+
+.dialog-field {
+    display: grid;
+    gap: 6px;
+    width: 100%;
+    text-align: left;
+}

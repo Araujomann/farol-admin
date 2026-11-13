@@ -409,10 +409,10 @@ sequenceDiagram
     Painel->>API: POST /admin/moderator-invites
     API->>API: staff("moderators:invite")
     API->>DB: tx: valida e-mail, revoga convite expirado, cria convite (token_hash), audit INVITE_CREATED
-    API->>Mail: link {ADMIN_PANEL_URL}/convite#token=…
+    API->>Mail: link {ADMIN_PANEL_URL}/invite#token=…
     API-->>Painel: 201 (sem o token)
 
-    Conv->>Painel: abre /convite#token=…
+    Conv->>Painel: abre /invite#token=…
     Painel->>Conv: formulário de login (e-mail e senha da conta Farol)
     Conv->>Painel: POST /api/invites/accept {token, email, password}
     Painel->>API: POST /auth/login
@@ -576,7 +576,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
 Páginas exclusivas checam no servidor antes de renderizar:
 
 ```tsx
-// app/(panel)/equipe/page.tsx
+// app/(panel)/team/page.tsx
 export default async function TeamPage() {
     await requirePagePermission("invites:manage"); // redirect("/sem-permissao") se faltar
     return <TeamClient />;
@@ -619,7 +619,7 @@ const navigation = [
     { href: "/moderation-history",    label: "Histórico",            icon: "clock",     permission: "moderation_history:read" },
     { href: "/notices",              label: "Avisos à comunidade",  icon: "bell",      permission: "notices:publish" },
     // Seção "Administração" — só aparece se houver ao menos um item
-    { href: "/equipe",               label: "Equipe e convites",    icon: "users",     permission: "invites:manage" },
+    { href: "/team",                 label: "Equipe e convites",    icon: "users",     permission: "invites:manage" },
     { href: "/usuarios",             label: "Usuários",             icon: "user",      permission: "users:manage" },
     { href: "/auditoria",            label: "Auditoria",            icon: "shield",    permission: "audit:read" },
     { href: "/configuracoes",        label: "Configurações",        icon: "settings",  permission: "settings:manage" },
@@ -648,11 +648,11 @@ lugar do texto fixo atual.
 | Rota | Permissão | Conteúdo |
 |---|---|---|
 | `/moderation-history` | `moderation_history:read` | Tabela: data, relato, decisão, moderador, mensagem; filtros |
-| `/equipe` | `invites:manage` | Abas **Moderadores** (remover) e **Convites** (pendentes/expirados/revogados/aceitos; reenviar/revogar); botão “Convidar” (`moderators:invite`) |
+| `/team` | `invites:manage` | Abas **Moderadores** (remover) e **Convites** (pendentes/expirados/revogados/aceitos; reenviar/revogar); botão “Convidar” (`moderators:invite`) |
 | `/usuarios` | `users:manage` | Busca, detalhe, suspender/reativar, encerrar sessões |
 | `/auditoria` | `audit:read` | Linha do tempo com ator, ação, alvo, metadados |
 | `/configuracoes` | `settings:manage` | Formulário das chaves conhecidas (ex.: validade do convite) |
-| `/convite` | pública | Lê `#token`, pede login, chama `/api/invites/accept` |
+| `/invite` | pública | Lê `#token`, pede login, chama `/api/invites/accept` |
 | `/sem-permissao` | autenticada | Mensagem e link para a visão geral |
 
 ## 8. Gestão de usuários e configurações (ADMIN)
@@ -696,6 +696,6 @@ No painel: testes dos helpers `Can`/`useCan` e do filtro de navegação por perm
 1. ✅ **API — base:** `permissions.ts`, `requirePermission`, `staff()`, `permissions` no usuário; rotas existentes migradas; `canManageAccident`/`canManageUserContent` por permissão. Testes em `tests/permissions.test.ts`. (A auditoria das ações de staff entra na fase 4, junto com a tabela `AdminAuditLog`.)
 2. ✅ **Painel — sessão:** `getSession`/`requirePagePermission` (`lib/session.ts`), route group `(panel)`, `PermissionsProvider`/`useCan`/`<Can>`, navegação filtrada, papel real no topo, `/sem-permissao`, tabela de rotas no BFF, tratamento de 403. O `proxy.ts` renova o access token vencido antes da renderização (Server Components não gravam cookies), então não foi preciso uma rota `/api/auth/session`.
 3. ✅ **Histórico:** `GET /admin/moderation-history` (+ `/moderators`) com filtros, dentro do `adminPlugin` que nega rota sem `config.permission`; trigger somente-inserção em `AccidentModerationHistory` (DELETE só com `crashmap.allow_history_purge` ligado na transação, usado pela limpeza dos testes); `deleteMe` anonimiza ex-staff com trilha (`deleted_at`, nome “Conta removida”) e o guard recusa conta anonimizada; tela `/moderation-history` no painel.
-4. **Convites + equipe:** migration (`ModeratorInvite`, `AdminAuditLog`), e-mail, aceite, revogação/reenvio, remoção de moderador, telas `/equipe` e `/convite`.
+4. ✅ **Convites + equipe:** tabelas `moderator_invites` e `admin_audit_logs` (somente-inserção, válvula `crashmap.allow_audit_purge` só para testes); convite com token de 256 bits (só o HMAC fica no banco), validade de 72 h, reenvio que invalida o link anterior (intervalo de 60 s, até 5 por e-mail por dia) e revogação; aceite pelo BFF (login + `POST /moderator-invites/accept` + cookies só se der certo); `/admin/moderators` lista a equipe e remove moderador (vira `user`, sessões revogadas, motivo obrigatório); auditoria das edições/exclusões de staff em conteúdo de terceiros; telas `/team` e `/invite`. Variável nova no `.env` da API: `ADMIN_PANEL_URL` (base do link do convite).
 5. **Usuários, auditoria, configurações** e o script `admin:grant-role`.
 6. Endurecimento: CORS restrito, rate limit, `trustProxy`.

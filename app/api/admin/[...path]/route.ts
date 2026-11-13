@@ -60,6 +60,36 @@ const ROUTES: BffRoute[] = [
     },
     {
         method: "GET",
+        pattern: /^moderator-invites$/,
+        backend: (route) => `/admin/${route}`,
+        permission: "invites:manage",
+    },
+    {
+        method: "POST",
+        pattern: /^moderator-invites$/,
+        backend: (route) => `/admin/${route}`,
+        permission: "moderators:invite",
+    },
+    {
+        method: "POST",
+        pattern: new RegExp(`^moderator-invites/${UUID}/(resend|revoke)$`, "i"),
+        backend: (route) => `/admin/${route}`,
+        permission: "invites:manage",
+    },
+    {
+        method: "GET",
+        pattern: /^moderators$/,
+        backend: (route) => `/admin/${route}`,
+        permission: "moderators:revoke",
+    },
+    {
+        method: "POST",
+        pattern: new RegExp(`^moderators/${UUID}/revoke$`, "i"),
+        backend: (route) => `/admin/${route}`,
+        permission: "moderators:revoke",
+    },
+    {
+        method: "GET",
         pattern: /^notifications\/administrative-notices$/,
         backend: (route) => `/${route}`,
         permission: "authenticated",

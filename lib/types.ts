@@ -89,3 +89,41 @@ export interface ModerationHistoryItem {
 export interface ModerationHistoryModerator extends ModerationHistoryActor {
     decisions_count: number;
 }
+
+export type InviteStatus = "PENDING" | "EXPIRED" | "ACCEPTED" | "REVOKED";
+
+export interface TeamPerson {
+    id: string;
+    name: string;
+}
+
+export interface ModeratorInvite {
+    id: string;
+    email: string;
+    status: InviteStatus;
+    expires_at: string;
+    created_at: string;
+    last_sent_at: string;
+    send_count: number;
+    invited_by: TeamPerson;
+    accepted_at: string | null;
+    accepted_by: TeamPerson | null;
+    revoked_at: string | null;
+    /** `null` com `revoked_at` preenchido: encerrado pelo sistema. */
+    revoked_by: TeamPerson | null;
+}
+
+export interface InviteDelivery {
+    invite: ModeratorInvite;
+    email_sent: boolean;
+}
+
+export interface TeamMember {
+    id: string;
+    name: string;
+    email: string;
+    role: "moderator" | "admin";
+    decisions_count: number;
+    created_at: string;
+    joined_at: string | null;
+}

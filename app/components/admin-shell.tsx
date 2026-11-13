@@ -29,6 +29,7 @@ const navigation: NavigationItem[] = [
         permission: "moderation_history:read",
     },
     { href: "/notices", label: "Avisos à comunidade", icon: "bell", permission: "notices:publish" },
+    { href: "/team", label: "Equipe e convites", icon: "users", permission: "invites:manage" },
 ];
 
 export function AdminShell({
@@ -52,7 +53,9 @@ export function AdminShell({
             ? "Histórico de moderação"
             : pathname.startsWith("/notices")
               ? "Avisos à comunidade"
-              : "Painel de Controle";
+              : pathname.startsWith("/team")
+                ? "Equipe e convites"
+                : "Painel de Controle";
 
     function searchReports(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();

@@ -63,8 +63,9 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
     // Páginas do painel. Ficam de fora: rotas de API (o BFF já renova a
-    // sessão), login, página de sem permissão, assets e arquivos estáticos.
+    // sessão), login, aceite de convite (o convidado ainda não tem sessão),
+    // página de sem permissão, assets e arquivos estáticos.
     matcher: [
-        "/((?!api|login|sem-permissao|_next/static|_next/image|favicon.ico|.*\\.[\\w]+$).*)",
+        "/((?!api|login|invite|sem-permissao|_next/static|_next/image|favicon.ico|.*\\.[\\w]+$).*)",
     ],
 };
