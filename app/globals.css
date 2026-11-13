@@ -5674,3 +5674,8 @@ body {
     flex-wrap: wrap;
     gap: 10px;
 }
+
+.invite-code-input {
+    font-family: Consolas, Menlo, monospace;
+    letter-spacing: 0.02em;
+}

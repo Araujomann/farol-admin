@@ -23,6 +23,9 @@ function errorResponse(status: number, code: string, message: string) {
 const ACCEPT_MESSAGES: Record<string, string> = {
     INVITE_INVALID:
         "Este convite é inválido, expirou ou já foi usado. Peça um novo convite a um administrador.",
+    // Código colado incompleto (a API recusa pelo formato).
+    VALIDATION_ERROR:
+        "Código de convite incompleto. Copie o código inteiro do e-mail e tente de novo.",
     INVITE_EMAIL_MISMATCH:
         "Este convite foi enviado para outro e-mail. Entre com a conta do e-mail convidado.",
     AUTH_EMAIL_NOT_VERIFIED:
