@@ -2,7 +2,10 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { AdminShell } from "@/app/components/admin-shell";
-import { adminFetch } from "@/lib/client-api";
+import { NoticeAlert, type FlashNotice } from "@/app/components/notice-alert";
+import { PageHeading } from "@/app/components/page-heading";
+import { fetchSettings, updateSettings } from "@/lib/api/settings";
+import { errorMessage } from "@/lib/errors";
 import { formatDate } from "@/lib/format";
 import type { PlatformSettingItem } from "@/lib/types";
 
@@ -20,7 +23,7 @@ export function SettingsClient() {
     const [settings, setSettings] = useState<PlatformSettingItem[] | null>(null);
     const [draft, setDraft] = useState<Record<string, string>>({});
     const [saving, setSaving] = useState(false);
-    const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
+    const [notice, setNotice] = useState<FlashNotice | null>(null);
 
     function load(items: PlatformSettingItem[]) {
         setSettings(items);
@@ -29,11 +32,11 @@ export function SettingsClient() {
 
     useEffect(() => {
         let active = true;
-        adminFetch<{ data: PlatformSettingItem[] }>("/api/admin/settings")
+        fetchSettings()
             .then((response) => active && load(response.data))
             .catch((reason) =>
                 active &&
-                setNotice({ tone: "error", text: reason instanceof Error ? reason.message : "Erro ao carregar configurações." }),
+                setNotice({ tone: "error", text: errorMessage(reason, "Erro ao carregar configurações.") }),
             );
         return () => {
             active = false;
@@ -57,14 +60,11 @@ export function SettingsClient() {
         setSaving(true);
         setNotice(null);
         try {
-            const response = await adminFetch<{ data: PlatformSettingItem[] }>("/api/admin/settings", {
-                method: "PATCH",
-                body: JSON.stringify(changes),
-            });
+            const response = await updateSettings(changes);
             load(response.data);
             setNotice({ tone: "success", text: "Configurações salvas e registradas na auditoria." });
         } catch (reason) {
-            setNotice({ tone: "error", text: reason instanceof Error ? reason.message : "Não foi possível salvar." });
+            setNotice({ tone: "error", text: errorMessage(reason, "Não foi possível salvar.") });
         } finally {
             setSaving(false);
         }
@@ -72,22 +72,13 @@ export function SettingsClient() {
 
     return (
         <AdminShell>
-            <div className="page-heading">
-                <div>
-                    <div className="eyebrow"><span className="eyebrow-dot" /> ADMINISTRAÇÃO</div>
-                    <h1>Configurações</h1>
-                    <p>
-                        Ajustes da plataforma. Cada alteração vale para as próximas ações e
-                        fica registrada na auditoria com o valor anterior.
-                    </p>
-                </div>
-            </div>
+            <PageHeading
+                description="Ajustes da plataforma. Cada alteração vale para as próximas ações e fica registrada na auditoria com o valor anterior."
+                eyebrow="ADMINISTRAÇÃO"
+                title="Configurações"
+            />
 
-            {notice && (
-                <div className={`alert ${notice.tone === "success" ? "alert-success" : "alert-error"}`} role="status">
-                    {notice.text}
-                </div>
-            )}
+            {notice && <NoticeAlert notice={notice} />}
 
             {!settings ? (
                 <div className="loading-card">Carregando configurações...</div>

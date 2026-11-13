@@ -1,74 +1,31 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     usePermissions,
     useSessionUser,
 } from "@/app/components/permissions-provider";
-import { Icon, type IconName } from "@/app/components/ui-icon";
-import { formatRole, type Permission } from "@/lib/permissions";
+import { LogoutDialog } from "@/app/components/shell/logout-dialog";
+import { navigation, pageTitleFor } from "@/app/components/shell/navigation";
+import { Sidebar } from "@/app/components/shell/sidebar";
+import { Topbar } from "@/app/components/shell/topbar";
+import { useSessionEvents } from "@/app/components/shell/use-session-events";
 
-interface NavigationItem {
-    href: string;
-    label: string;
-    icon: IconName;
-    permission: Permission;
-}
-
-// Cada item só aparece para quem tem a permissão correspondente.
-const navigation: NavigationItem[] = [
-    { href: "/", label: "Visão geral", icon: "dashboard", permission: "stats:read" },
-    { href: "/reports", label: "Relatos", icon: "reports", permission: "reports:read" },
-    {
-        href: "/moderation-history",
-        label: "Histórico de moderação",
-        icon: "clock",
-        permission: "moderation_history:read",
-    },
-    { href: "/notices", label: "Avisos à comunidade", icon: "bell", permission: "notices:publish" },
-    { href: "/team", label: "Equipe e convites", icon: "users", permission: "invites:manage" },
-    { href: "/users", label: "Usuários", icon: "user", permission: "users:manage" },
-    { href: "/audit", label: "Auditoria", icon: "shield", permission: "audit:read" },
-    { href: "/settings", label: "Configurações", icon: "settings", permission: "settings:manage" },
-];
-
-// Título do topo por prefixo de rota; o primeiro que casar vale.
-const pageTitles: Array<[prefix: string, title: string]> = [
-    ["/reports/", "Análise do relato"],
-    ["/reports", "Relatos"],
-    ["/moderation-history", "Histórico de moderação"],
-    ["/notices", "Avisos à comunidade"],
-    ["/team", "Equipe e convites"],
-    ["/users", "Usuários"],
-    ["/audit", "Auditoria"],
-    ["/settings", "Configurações"],
-];
-
+/** Moldura das páginas do painel: menu lateral, barra superior e saída da conta. */
 export function AdminShell({
     children,
 }: Readonly<{ children: React.ReactNode }>) {
     const pathname = usePathname();
     const router = useRouter();
     const [menuOpen, setMenuOpen] = useState(false);
-    const [globalSearch, setGlobalSearch] = useState("");
     const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
     const [logoutPending, setLogoutPending] = useState(false);
     const user = useSessionUser();
     const can = usePermissions();
     const visibleNavigation = navigation.filter((item) => can(item.permission));
     const canSearchReports = can("reports:read");
-    const pageTitle =
-        pageTitles.find(([prefix]) => pathname.startsWith(prefix))?.[1] ??
-        "Painel de Controle";
-
-    function searchReports(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        const query = globalSearch.trim();
-        router.push(query ? `/reports?search=${encodeURIComponent(query)}` : "/reports");
-    }
+    const pageTitle = pageTitleFor(pathname);
 
     async function confirmLogout() {
         setLogoutPending(true);
@@ -92,19 +49,7 @@ export function AdminShell({
         }
     }
 
-    useEffect(() => {
-        const handleUnauthorized = () => router.replace("/login");
-        // A API recusou por permissão: as permissões podem ter mudado (por
-        // exemplo, o moderador foi removido). Recarrega a sessão no servidor;
-        // se o acesso ao painel caiu, as páginas redirecionam.
-        const handleForbidden = () => router.refresh();
-        window.addEventListener("farol:unauthorized", handleUnauthorized);
-        window.addEventListener("farol:forbidden", handleForbidden);
-        return () => {
-            window.removeEventListener("farol:unauthorized", handleUnauthorized);
-            window.removeEventListener("farol:forbidden", handleForbidden);
-        };
-    }, [router]);
+    useSessionEvents();
 
     useEffect(() => {
         if (!logoutDialogOpen) return;
@@ -120,106 +65,20 @@ export function AdminShell({
 
     return (
         <div className="app-frame">
-            <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
-                <Link
-                    className="brand"
-                    href="/"
-                    onClick={() => setMenuOpen(false)}
-                >
-                    <Image
-                        alt=""
-                        className="brand-logo"
-                        height={52}
-                        src="/farol-logo.png"
-                        width={52}
-                    />
-                    <span>
-                        <strong>Farol</strong>
-                        <small>ADMINISTRAÇÃO</small>
-                    </span>
-                </Link>
-                <div className="sidebar-label">NAVEGAÇÃO PRINCIPAL</div>
-                <nav aria-label="Navegação principal" className="side-nav">
-                    {visibleNavigation.map((item) => {
-                        const active =
-                            item.href === "/"
-                                ? pathname === "/"
-                                : pathname.startsWith(item.href);
-                        return (
-                            <Link
-                                aria-current={active ? "page" : undefined}
-                                className={`nav-link ${active ? "nav-link-active" : ""}`}
-                                href={item.href}
-                                key={item.href}
-                                onClick={() => setMenuOpen(false)}
-                            >
-                                <Icon name={item.icon} />
-                                <span>{item.label}</span>
-                            </Link>
-                        );
-                    })}
-                </nav>
-                <div className="sidebar-bottom">
-                    <div className="security-note">
-                        <span className="security-dot" />
-                        <span>
-                            <strong>Status Operacional</strong>
-                            <small>Central ativa</small>
-                        </span>
-                        <Icon name="lock" />
-                    </div>
-                    <button
-                        className="nav-link logout-link"
-                        onClick={() => setLogoutDialogOpen(true)}
-                        type="button"
-                    >
-                        <Icon name="logout" />
-                        <span>Sair da conta</span>
-                    </button>
-                </div>
-            </aside>
+            <Sidebar
+                items={visibleNavigation}
+                onLogout={() => setLogoutDialogOpen(true)}
+                onNavigate={() => setMenuOpen(false)}
+                open={menuOpen}
+                pathname={pathname}
+            />
             <div className="main-column">
-                <header className="topbar">
-                    <button
-                        aria-label="Abrir menu"
-                        className="mobile-menu"
-                        onClick={() => setMenuOpen((open) => !open)}
-                        type="button"
-                    >
-                        <Icon name="menu" />
-                    </button>
-                    <div aria-label={`Farol ADM, ${pageTitle}`} className="topbar-breadcrumb">
-                        <span aria-hidden="true" className="topbar-status-dot" />
-                   
-                        <Icon name="chevron" />
-                        <strong>{pageTitle}</strong>
-                    </div>
-                    {canSearchReports && (
-                        <form className="topbar-search" onSubmit={searchReports} role="search">
-                            <Icon name="search" />
-                            <input
-                                aria-label="Buscar relatos"
-                                onChange={(event) => setGlobalSearch(event.target.value)}
-                                placeholder="Buscar ocorrência, placa, protocolo"
-                                value={globalSearch}
-                            />
-                        </form>
-                    )}
-                    <div className="topbar-account">
-                        <span className="role-pill">
-                            <Icon name="lock" />
-                            Acesso seguro
-                        </span>
-                        <span className="account-divider" />
-                        <span className="account-copy">
-                            <strong>{user ? formatRole(user.role) : "Equipe"}</strong>
-                            {user && <small title={user.email}>{user.name}</small>}
-                        </span>
-                        <span aria-hidden="true" className="account-avatar">
-                            {user?.name.trim().charAt(0).toUpperCase() || "?"}
-                        </span>
-                    </div>
-                </header>
+                <Topbar
+                    canSearchReports={canSearchReports}
+                    onToggleMenu={() => setMenuOpen((open) => !open)}
+                    pageTitle={pageTitle}
+                    user={user}
+                />
                 <main className="main-content">{children}</main>
             </div>
             {menuOpen && (
@@ -231,49 +90,11 @@ export function AdminShell({
                 />
             )}
             {logoutDialogOpen && (
-                <div
-                    className="logout-dialog-backdrop"
-                    onMouseDown={(event) => {
-                        if (event.target === event.currentTarget && !logoutPending) {
-                            setLogoutDialogOpen(false);
-                        }
-                    }}
-                >
-                    <section
-                        aria-describedby="logout-dialog-description"
-                        aria-labelledby="logout-dialog-title"
-                        aria-modal="true"
-                        className="logout-dialog"
-                        role="dialog"
-                    >
-                        <div className="logout-dialog-icon">
-                            <Icon name="logout" />
-                        </div>
-                        <h2 id="logout-dialog-title">Sair da sua conta?</h2>
-                        <p id="logout-dialog-description">
-                            Você precisará entrar novamente para acessar o painel.
-                        </p>
-                        <div className="logout-dialog-actions">
-                            <button
-                                autoFocus
-                                className="button button-outline"
-                                disabled={logoutPending}
-                                onClick={() => setLogoutDialogOpen(false)}
-                                type="button"
-                            >
-                                Continuar conectado
-                            </button>
-                            <button
-                                className="button button-danger"
-                                disabled={logoutPending}
-                                onClick={() => void confirmLogout()}
-                                type="button"
-                            >
-                                {logoutPending ? "Saindo..." : "Sair da conta"}
-                            </button>
-                        </div>
-                    </section>
-                </div>
+                <LogoutDialog
+                    onCancel={() => setLogoutDialogOpen(false)}
+                    onConfirm={() => void confirmLogout()}
+                    pending={logoutPending}
+                />
             )}
         </div>
     );
