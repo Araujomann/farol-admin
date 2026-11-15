@@ -184,6 +184,18 @@ Comportamento:
   → diálogo de confirmação; remover moderador e suspender/reativar/encerrar
   sessões de uma conta exigem motivo.
 
+### Decisões de autorização
+
+Tomadas ao introduzir as permissões (registradas originalmente em
+`docs/arquitetura-permissoes.md` §11, substituído por este documento):
+
+| # | Questão | Decisão |
+|---|---|---|
+| 1 | Avisos à comunidade continuam com o moderador? | Sim: `notices:publish` para moderador e administrador. |
+| 2 | Editar o texto de um relato pendente conta como moderar? | Sim: `PATCH /accidents/moderation/:id` exige `reports:moderate`. |
+| 3 | A staff perde o poder de editar e apagar relatos pelas rotas públicas? | Não: o poder fica coberto por `reports:moderate`, e cada ação sobre conteúdo alheio é auditada (`canManageContent` em `crashmap-api/src/modules/accidents/accidents.access.ts`). A API ainda impede o autor de editar e qualquer pessoa de apagar relatos já moderados. |
+| 4 | Contas só com login Google aceitam convite? | Não se aplica: não há login com Google; o aceite é feito com login por senha. |
+
 ## 5. Aceite de convite
 
 ```mermaid
