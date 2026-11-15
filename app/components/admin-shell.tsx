@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
     usePermissions,
@@ -17,7 +17,6 @@ export function AdminShell({
     children,
 }: Readonly<{ children: React.ReactNode }>) {
     const pathname = usePathname();
-    const router = useRouter();
     const [menuOpen, setMenuOpen] = useState(false);
     const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
     const [logoutPending, setLogoutPending] = useState(false);
@@ -41,7 +40,10 @@ export function AdminShell({
                 );
             }
             setLogoutDialogOpen(false);
-            router.replace("/login");
+            // Carregamento completo: a pré-busca do Next guarda respostas de antes da
+            // mudança de sessão (ex.: "/" redirecionando para /login) e uma navegação
+            // do cliente reaproveitaria esse cache.
+            window.location.replace("/login");
         } catch {
             window.alert("Não foi possível encerrar a sessão corretamente.");
         } finally {

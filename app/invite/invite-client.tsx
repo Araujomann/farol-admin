@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Icon } from "@/app/components/ui-icon";
 
@@ -15,7 +14,6 @@ function readTokenFromHash(): string | null {
 // ou digitando o endereço e colando o código do e-mail. Em ambiente local o
 // e-mail não leva link, porque os provedores barram links para localhost.
 export function InviteClient() {
-    const router = useRouter();
     const [linkToken, setLinkToken] = useState<string | null | undefined>(undefined);
     const [code, setCode] = useState("");
     const [email, setEmail] = useState("");
@@ -61,7 +59,10 @@ export function InviteClient() {
                 setError(result?.error?.message ?? "Não foi possível aceitar o convite.");
                 return;
             }
-            router.replace("/");
+            // Carregamento completo: a pré-busca do Next guarda respostas de antes da
+            // mudança de sessão (ex.: "/" redirecionando para /login) e uma navegação
+            // do cliente reaproveitaria esse cache.
+            window.location.replace("/");
         } catch {
             setError("Não foi possível conectar ao painel. Tente novamente.");
         } finally {

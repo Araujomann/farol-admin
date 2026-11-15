@@ -1,13 +1,12 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { Icon } from "@/app/components/ui-icon";
 import { LoginBrandPanel } from "@/app/login/_components/login-brand-panel";
 
 function LoginForm() {
     const searchParams = useSearchParams();
-    const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -36,7 +35,10 @@ function LoginForm() {
                 next?.startsWith("/") && !next.startsWith("//")
                     ? next
                     : "/";
-            router.replace(destination);
+            // Carregamento completo: a pré-busca do Next guarda respostas de antes da
+            // mudança de sessão (ex.: "/" redirecionando para /login) e uma navegação
+            // do cliente reaproveitaria esse cache.
+            window.location.replace(destination);
         } catch (reason) {
             setError(
                 reason instanceof Error

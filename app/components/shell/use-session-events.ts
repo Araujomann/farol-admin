@@ -11,7 +11,9 @@ export function useSessionEvents() {
     const router = useRouter();
 
     useEffect(() => {
-        const handleUnauthorized = () => router.replace("/login");
+        // Carregamento completo para descartar o cache de navegação da sessão
+        // que acabou de expirar.
+        const handleUnauthorized = () => window.location.replace("/login");
         // A API recusou por permissão: as permissões podem ter mudado (por
         // exemplo, o moderador foi removido). Recarrega a sessão no servidor;
         // se o acesso ao painel caiu, as páginas redirecionam.

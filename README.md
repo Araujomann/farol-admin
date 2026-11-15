@@ -29,7 +29,7 @@ ocupada, use `npm run dev -- --port 3001`.
 
 - O navegador não recebe tokens de acesso ou refresh. O BFF do Next os guarda em cookies `HttpOnly`, `SameSite=Lax` e `Secure` em produção.
 - O login recusa contas sem a permissão `panel:access`, com e-mail não verificado ou suspensas.
-- A autorização efetiva é aplicada pela Crash Map API em todas as rotas; o painel só esconde o que a conta não pode fazer. A arquitetura completa está em [docs/arquitetura-permissoes.md](docs/arquitetura-permissoes.md).
+- A autorização efetiva é aplicada pela Crash Map API em todas as rotas; o painel só esconde o que a conta não pode fazer. A arquitetura completa está em [docs/architecture.md](docs/architecture.md).
 - `CRASHMAP_API_URL` é uma variável de servidor e não deve usar o prefixo `NEXT_PUBLIC_`.
 - O painel repassa à API o IP do navegador (`X-Forwarded-For`), usado na auditoria e nos limites de tentativas. Em produção, hospede o painel atrás de um proxy que acrescente ou sobrescreva esse cabeçalho e configure `TRUST_PROXY` na API com o endereço do painel.
 - Login e aceite de convite têm limite de tentativas; ao estourar, a tela mostra quanto tempo esperar.

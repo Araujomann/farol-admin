@@ -1,10 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function SignOutButton() {
-    const router = useRouter();
     const [pending, setPending] = useState(false);
 
     async function signOut() {
@@ -12,7 +10,10 @@ export function SignOutButton() {
         try {
             await fetch("/api/auth/logout", { method: "POST" });
         } finally {
-            router.replace("/login");
+            // Carregamento completo: a pré-busca do Next guarda respostas de antes da
+            // mudança de sessão (ex.: "/" redirecionando para /login) e uma navegação
+            // do cliente reaproveitaria esse cache.
+            window.location.replace("/login");
         }
     }
 
