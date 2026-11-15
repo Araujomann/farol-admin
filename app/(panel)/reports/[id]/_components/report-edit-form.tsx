@@ -52,7 +52,7 @@ export function ReportEditForm({
                 <textarea
                     className="text-area"
                     disabled={saving}
-                    maxLength={4000}
+                    maxLength={1000}
                     onChange={(event) => onDescriptionChange(event.target.value)}
                     placeholder="O usuário não adicionou uma descrição."
                     value={description}

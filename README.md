@@ -31,7 +31,7 @@ ocupada, use `npm run dev -- --port 3001`.
 - O login recusa contas sem a permissão `panel:access`, com e-mail não verificado ou suspensas.
 - A autorização efetiva é aplicada pela Crash Map API em todas as rotas; o painel só esconde o que a conta não pode fazer. A arquitetura completa está em [docs/architecture.md](docs/architecture.md).
 - `CRASHMAP_API_URL` é uma variável de servidor e não deve usar o prefixo `NEXT_PUBLIC_`.
-- O painel repassa à API o IP do navegador (`X-Forwarded-For`), usado na auditoria e nos limites de tentativas. Em produção, hospede o painel atrás de um proxy que acrescente ou sobrescreva esse cabeçalho e configure `TRUST_PROXY` na API com o endereço do painel.
+- O painel repassa à API o IP do navegador (`X-Forwarded-For`). A API só aceita esse cabeçalho de proxies listados em `TRUST_PROXY` (hoje, a cadeia interna do Render e a Cloudflare; ver `crashmap-api/docs/DEPLOY.md`). Como o servidor do painel na Vercel não está nessa lista, a auditoria e os limites de tentativas das ações feitas pelo painel registram o IP do servidor da Vercel, não o do moderador. Repassar o IP real exige um cabeçalho assinado entre painel e API (planejado).
 - Login e aceite de convite têm limite de tentativas; ao estourar, a tela mostra quanto tempo esperar.
 
 ## Checklist de produção
@@ -70,7 +70,7 @@ A ação `REJECTED` exige `publicMessage`. `internalNote` é armazenada separada
 
 Moderadores e administradores com e-mail verificado podem publicar comunicados
 pela opção **Avisos à comunidade** na barra lateral. Cada mensagem aparece no
-sininho do perfil no aplicativo Farol; o painel também mantém uma lista dos
+painel deslizante aberto pelo sininho da tela de perfil do aplicativo Farol; o painel também mantém uma lista dos
 avisos mais recentes.
 
 - `GET /notifications/administrative-notices` — lista os 50 avisos mais recentes para usuários autenticados.
@@ -78,6 +78,9 @@ avisos mais recentes.
 
 ## Limitações conhecidas
 
-- A API registra uma mensagem destinada ao usuário, mas o aplicativo Farol V3 ainda não busca nem exibe esse retorno. A exibição ao usuário exige uma evolução específica no endpoint e na interface mobile.
+- A mensagem pública da decisão só aparece ao autor quando o relato é rejeitado (como motivo da rejeição, em **Meus relatos** no aplicativo Farol V3). Em relatos aprovados ela fica registrada, mas o aplicativo não a exibe.
+- A edição de relatos pela interface só é oferecida enquanto estão `PENDING`. A API também permite à staff corrigir título e descrição de relatos já moderados (com auditoria), mas o painel não expõe essa ação.
+- O push de aprovação não é personalizado: a API envia a todos os dispositivos registrados um aviso genérico de novo acidente em Imperatriz.
+- A descrição do relato tem até 1.000 caracteres na API, no painel e no aplicativo. O título aceita de 3 a 180 caracteres na API e no painel; o aplicativo limita o tipo personalizado a 60.
 - O endereço legível não é persistido pelo modelo atual; o painel apresenta coordenadas e link para o mapa.
 - As contas precisam ter o papel administrativo e a verificação de e-mail configurados na API antes do primeiro login.
