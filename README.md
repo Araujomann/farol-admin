@@ -25,6 +25,18 @@ npm run dev
 O painel fica disponível em `http://localhost:3000`. Se essa porta já estiver
 ocupada, use `npm run dev -- --port 3001`.
 
+## Testes
+
+```powershell
+npm test            # roda uma vez (é o que a CI usa)
+npm run test:watch  # roda de novo a cada alteração
+```
+
+Os testes ficam em `tests/` e usam Vitest. Cobrem a sessão (`lib/session-tokens.ts`,
+`lib/backend.ts`), o `proxy.ts` (renovação do token e matcher), as rotas de
+login, logout e aceite de convite, a lista fechada do BFF em `/api/admin` e os
+formatadores. A Crash Map API não é chamada: o `fetch` é substituído em cada teste.
+
 ## Segurança e acesso
 
 - O navegador não recebe tokens de acesso ou refresh. O BFF do Next os guarda em cookies `HttpOnly`, `SameSite=Lax` e `Secure` em produção.
